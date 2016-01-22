@@ -1,3 +1,4 @@
+-- type definitions and handy small functions
 module MapType where
 import Data.Word
 import qualified Data.Map as Map
