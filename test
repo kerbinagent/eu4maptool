@@ -1,0 +1,9 @@
+1395.8.29 = {
+	monarch = {
+		name = "Albrecht IV"
+		dynasty = "von Habsburg"
+		adm = 1
+		dip = 1
+		mil = 3
+	}
+}
