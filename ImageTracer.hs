@@ -107,5 +107,5 @@ getBezierControl vts = beziers where
   beziers = map (\(a,b) -> [a !! 1, last a, head b, b !! 1]) $ connect segmentVertice
 
 -- given a quadratic bezier curve, draw the curve in appropriate segments
-drawBezier :: [(Double,Double)] -> [(Double, Double), (Double, Double)]
+drawBezier :: [(Double,Double)] -> [((Double, Double), (Double, Double))]
 drawBezier = undefined
