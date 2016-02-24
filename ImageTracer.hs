@@ -105,3 +105,7 @@ getBezierControl vts = beziers where
   verticeToGroup p@(x,y) ((dx,dy),(dx0,dy0)) = [(x+dx,y+dy),p,(x+dx0,y+dy0)]
   segmentVertice = zipWith verticeToGroup (tail vs ++ [head vs]) $ zipWith ratioToDiff ratios middlePolygon
   beziers = map (\(a,b) -> [a !! 1, last a, head b, b !! 1]) $ connect segmentVertice
+
+-- given a quadratic bezier curve, draw the curve in appropriate segments
+drawBezier :: [(Double,Double)] -> [(Double, Double), (Double, Double)]
+drawBezier = undefined
