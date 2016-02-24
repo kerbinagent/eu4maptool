@@ -107,5 +107,19 @@ getBezierControl vts = beziers where
   beziers = map (\(a,b) -> [a !! 1, last a, head b, b !! 1]) $ connect segmentVertice
 
 -- given a quadratic bezier curve, draw the curve in appropriate segments
-drawBezier :: [(Double,Double)] -> [((Double, Double), (Double, Double))]
-drawBezier = undefined
+stepSize :: Double
+stepSize = 1
+
+dToIntDivide :: Double -> Double -> Int
+dToIntDivide a b = round $ a/b
+
+arrOne :: [Double]
+arrOne = map (1/) [1..100]
+
+--drawBezier :: [(Double,Double)] -> [((Double, Double), (Double, Double))]
+drawBezier input@[(x0,y0),(x1,y1),(x2,y2),(x3,y3)]= (join . getpoint) times where
+    join [a,b] = [(a,b)]
+    join (a:as) = (a,head as):join as
+    getpoint = map (\t->((1-t)^3*x0+3*(1-t)^2*t*x1+3*(1-t)*t^2*x2+t^3*x3,(1-t)^3*y0+3*(1-t)^2*t*y1+3*(1-t)*t^2*y2+t^3*y3))
+    times = (map (*(arrOne !! (steps-1))) [0..steps-1])++[1]
+    steps = dToIntDivide (sqrt((x1-x0)^2+(y1-y0)^2)+sqrt((x2-x1)^2+(y2-y1)^2)+sqrt((x3-x2)^2+(y3-y2)^2)) stepSize
