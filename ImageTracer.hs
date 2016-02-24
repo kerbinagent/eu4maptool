@@ -116,10 +116,19 @@ dToIntDivide a b = round $ a/b
 arrOne :: [Double]
 arrOne = map (1/) [1..100]
 
---drawBezier :: [(Double,Double)] -> [((Double, Double), (Double, Double))]
-drawBezier input@[(x0,y0),(x1,y1),(x2,y2),(x3,y3)]= (join . getpoint) times where
-    join [a,b] = [(a,b)]
-    join (a:as) = (a,head as):join as
-    getpoint = map (\t->((1-t)^3*x0+3*(1-t)^2*t*x1+3*(1-t)*t^2*x2+t^3*x3,(1-t)^3*y0+3*(1-t)^2*t*y1+3*(1-t)*t^2*y2+t^3*y3))
-    times = (map (*(arrOne !! (steps-1))) [0..steps-1])++[1]
-    steps = dToIntDivide (sqrt((x1-x0)^2+(y1-y0)^2)+sqrt((x2-x1)^2+(y2-y1)^2)+sqrt((x3-x2)^2+(y3-y2)^2)) stepSize
+-- eliminate the warnings
+three :: Int
+three = 3
+two :: Int
+two = 2
+
+drawBezier :: [(Double,Double)] -> [((Double, Double), (Double, Double))]
+drawBezier input = (connect . getpoint) times where
+    (x0,y0) = head input
+    (x1,y1) = input !! 1
+    (x2,y2) = input !! 2
+    (x3,y3) = last input
+    connect as = zip (init as) (tail as)
+    getpoint = map (\t->((1-t)^three*x0+3*(1-t)^two*t*x1+3*(1-t)*t^two*x2+t^three*x3,(1-t)^three*y0+3*(1-t)^two*t*y1+3*(1-t)*t^two*y2+t^three*y3))
+    times = map ((*(arrOne !! (steps-1))) . fromIntegral) [0..steps-1] ++ [1]
+    steps = dToIntDivide (sqrt((x1-x0)^two+(y1-y0)^two)+sqrt((x2-x1)^two+(y2-y1)^two)+sqrt((x3-x2)^two+(y3-y2)^two)) stepSize
