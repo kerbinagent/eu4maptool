@@ -19,8 +19,11 @@ leaders::[Monarch]
 
 data ProvinceHistory = PHistory {
 provinceID::Int,
-baseDevelopment::Word8,
-provinceReligion::Int,
+baseManpower :: Word8,
+baseTax :: Word8,
+baseProduction :: Word8,
+-- provinceReligion::Int,
 hre::Bool,
 controllers::[(String,HistoryDate)]
 }
+  deriving(Show)
