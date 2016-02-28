@@ -22,7 +22,7 @@ main = do
   let lumap = Map.fromAscList $ map read (lines c)
   Right (ImageRGB8 bmp) <- readBitmap "resources/provinces.bmp"
   let smap = buildShape defMap bmp
-  print $ provBezier smap lumap 18 
+  mapM_ print $ map (length . provBezier smap lumap) [1..3000]
   --putStrLn "%!PS\n1 setlinecap\n"
   --mapM_ putStr result
   --putStrLn "showpage"

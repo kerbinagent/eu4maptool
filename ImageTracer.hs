@@ -14,8 +14,8 @@ firstEdge p = (a, b) where
 getNextEdge :: ShapeMap -> Word16 -> State Path ()
 getNextEdge m p = do
   es <- get
-  let e@(_,v) = last es
-      newV = head [x | x<- allEdge v, isEdge m x p, x/=e]
+  let e = last es
+      newV = head [x | x<- edgeToEdge e, isEdge m x p, x/=e]
   put $ es++[newV]
 
 buildPath :: ShapeMap -> Word16 -> State Path ()

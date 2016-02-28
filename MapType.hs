@@ -43,8 +43,12 @@ isEdge m e p = (m ! px1 == p) && (m ! px2 /= p) where
   px1 = toPixel True e
   px2 = toPixel False e
 
-allEdge :: Vertice -> [Edge]
-allEdge v@(x,y) = [(v,(x,y-1)),(v,(x,y+1)),(v,(x-1,y)),(v,(x+1,y))]
+edgeToEdge :: Edge -> [Edge]
+edgeToEdge e@(_,(c,d)) = case edgeDirection e of
+  Up -> [ ((c,d),(c+1,d)) , ((c,d),(c,d-1)) , ((c,d),(c-1,d)) ]
+  Dn -> [ ((c,d),(c-1,d)) , ((c,d),(c,d+1)) , ((c,d),(c+1,d)) ]
+  Lf -> [ ((c,d),(c,d-1)) , ((c,d),(c-1,d)) , ((c,d),(c,d+1)) ]
+  Rg -> [ ((c,d),(c,d+1)) , ((c,d),(c+1,d)) , ((c,d),(c,d-1)) ]
 
 -- given left (True) / right (False) -> get the corresponding pixel nexts to an edge
 toPixel :: Bool -> Edge -> PixelPos
