@@ -3,6 +3,7 @@ import Parser
 import Codec.Picture
 import ImageTracer
 import Beijing
+import qualified Data.Map as Map
 
 bezierToPS :: [(Double, Double)] -> String
 bezierToPS = drawps . drawBezier where
@@ -18,7 +19,8 @@ main = do
   g <- readFile "resources/definition.csv"
   let defMap = parseRDef g
   Right (ImageRGB8 bmp) <- readBitmap "resources/provinces.bmp"
-  let allmap = buildShape defMap bmp
-  putStrLn "%!PS\n1 setlinecap\n"
-  mapM_ putStr result
-  putStrLn "showpage"
+  let lumap = Map.toList $ buildLeftUpMap Map.empty (1,1) (buildShape defMap bmp)
+  mapM_ print lumap
+  --putStrLn "%!PS\n1 setlinecap\n"
+  --mapM_ putStr result
+  --putStrLn "showpage"
