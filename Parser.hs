@@ -27,8 +27,11 @@ buildCountry = undefined
 buildProvince :: Int -> Map.Map String String -> ProvinceHistory
 buildProvince pid attrMap = PHistory pid man tax pro ishre [(owner,(1444,11,11))] where
   getAttr attr = fromMaybe "" $ Map.lookup attr attrMap
-  man = readW $ getAttr "base_manpower"
-  tax = readW $ getAttr "base_tax"
-  pro = readW $ getAttr "base_production"
+  vals = map getAttr ["base_manpower","base_tax","base_production"]
+  -- if manpower / tax / production nonzero, but no controller -> lands to be colonized
+  man = if head vals /= "" then readW (head vals) else 0
+  tax = if head vals /= "" then readW (vals !! 1) else 0
+  pro = if head vals /= "" then readW (last vals) else 0
   ishre = getAttr "hre" == "yes"
+  -- if no controller and manpower / tax / production zero then waste land
   owner = getAttr "controller"
