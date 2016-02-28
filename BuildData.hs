@@ -35,3 +35,9 @@ getPCPair dir f = do
 
 buildPCMap :: String -> [FilePath] -> IO ProvCountryMap
 buildPCMap dir fs = mapM (getPCPair dir) fs >>= return . Map.fromList
+
+buildLeftUpMap :: Map.Map Word16 Vertice -> Vertice -> ShapeMap -> Map.Map Word16 Vertice
+buildLeftUpMap lumap v@(x,y) smap = if (x==i-1) && (y==j-1) then lumap else
+  if Map.member (smap ! v) lumap then buildLeftUpMap lumap (nextv v) smap else buildLeftUpMap (Map.insert (smap ! v) v lumap) (nextv v) smap where
+    (_,(i,j)) = bounds smap
+    nextv (a,b) = if b==j-1 then (a+1,1) else (a,b+1)
