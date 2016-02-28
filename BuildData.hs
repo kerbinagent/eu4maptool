@@ -4,6 +4,7 @@ module BuildData where
 -- will run out of file handles if not using strict IO
 import qualified System.IO.Strict as STIO
 import Control.Exception (evaluate)
+import Control.Monad.State
 import MapType
 import Codec.Picture
 import qualified Data.Map as Map
@@ -13,6 +14,7 @@ import Data.Array
 import Data.Char
 import Parser
 import HistoryType
+import ImageTracer
 
 getProvince :: ReverseDefMap -> Image PixelRGB8 -> PixelPos -> Word16
 getProvince dmap bmp (x,y) = let PixelRGB8 r g b = pixelAt bmp ((fromIntegral . toInteger) x) ((fromIntegral . toInteger) y) in fromMaybe 0 $ (r,g,b) `Map.lookup` dmap
@@ -41,3 +43,8 @@ buildLeftUpMap lumap v@(x,y) smap = if (x==i-1) && (y==j-1) then lumap else
   if Map.member (smap ! v) lumap then buildLeftUpMap lumap (nextv v) smap else buildLeftUpMap (Map.insert (smap ! v) v lumap) (nextv v) smap where
     (_,(i,j)) = bounds smap
     nextv (a,b) = if b==j-1 then (a+1,1) else (a,b+1)
+
+provBezier :: ShapeMap -> Map.Map Word16 Vertice -> Word16 -> [[(Double, Double)]]
+provBezier smap lumap pid = result where
+  ps = execState (buildPath smap pid) [firstEdge (fromMaybe (0,0) (Map.lookup pid lumap))]
+  result = (getBezierControl . optimalPolygon) ps
