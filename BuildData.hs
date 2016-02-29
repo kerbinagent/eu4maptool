@@ -16,11 +16,13 @@ import Parser
 import HistoryType
 import ImageTracer
 
-getProvince :: ReverseDefMap -> Image PixelRGB8 -> PixelPos -> Word16
-getProvince dmap bmp (x,y) = let PixelRGB8 r g b = pixelAt bmp ((fromIntegral . toInteger) x) ((fromIntegral . toInteger) y) in fromMaybe 0 $ (r,g,b) `Map.lookup` dmap
+getProvince :: ReverseDefMap -> Image PixelRGB8 -> Image PixelRGB8 -> PixelPos -> Word16
+getProvince dmap bmp tbmp (x,y) = let PixelRGB8 r g b = pixelAt bmp ((fromIntegral . toInteger) x) ((fromIntegral . toInteger) y)
+                                      PixelRGB8 r' g' b' = pixelAt tbmp ((fromIntegral . toInteger) x) ((fromIntegral . toInteger) y) in
+  if (r',g',b') == (8,31,130) || (r',g',b') == (55,90,220) then 0 else fromMaybe 0 $ (r,g,b) `Map.lookup` dmap
 
-buildShape :: ReverseDefMap -> Image PixelRGB8 -> ShapeMap
-buildShape dmap bmp = array ((1,1),(m,n)) [((x,y),p) | x <- [1..m], y<- [1..n], let p = getProvince dmap bmp (x,y)] where
+buildShape :: ReverseDefMap -> Image PixelRGB8 -> Image PixelRGB8 -> ShapeMap
+buildShape dmap bmp tbmp = array ((1,1),(m,n)) [((x,y),p) | x <- [1..m], y<- [1..n], let p = getProvince dmap bmp tbmp (x,y)] where
   m = fromIntegral $ imageWidth bmp - 1
   n = fromIntegral $ imageHeight bmp - 1
 
@@ -42,7 +44,7 @@ buildLeftUpMap :: Map.Map Word16 Vertice -> Vertice -> ShapeMap -> Map.Map Word1
 buildLeftUpMap lumap v@(x,y) smap = if (x==i-1) && (y==j-1) then lumap else
   if Map.member (smap ! v) lumap then buildLeftUpMap lumap (nextv v) smap else buildLeftUpMap (Map.insert (smap ! v) v lumap) (nextv v) smap where
     (_,(i,j)) = bounds smap
-    nextv (a,b) = if a==i-1 then (a,b+1) else (a+1,b)
+    nextv (a,b) = if a==i-1 then (1,b+1) else (a+1,b)
 
 buildRightDownMap :: Map.Map Word16 Vertice -> Vertice -> ShapeMap -> Map.Map Word16 Vertice
 buildRightDownMap rdmap v@(x,y) smap = if (x==1) && (y==1) then rdmap else

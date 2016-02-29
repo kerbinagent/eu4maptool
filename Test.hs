@@ -22,18 +22,19 @@ getsmap = do
   g <- readFile "resources/definition.csv"
   let defMap = parseRDef g
   Right (ImageRGB8 bmp) <- readBitmap "resources/provinces.bmp"
-  let smap = buildShape defMap bmp
+  Right (ImageRGB8 tbmp) <- readBitmap "resources/terrain.bmp"
+  let smap = buildShape defMap bmp tbmp
   return smap
 
 main :: IO ()
 main = do
-  c <- readFile "resources/vanilla"
-  b <- readFile "resources/vanilladr"
+  c <- readFile "resources/vanillalu"
+  b <- readFile "resources/vanillard"
+  smap <- getsmap
   let lumap = Map.fromAscList $ map read (lines c)
   let drmap = Map.fromAscList $ map read (lines b)
-  smap <- getsmap
   let pmap = buildLongPath smap lumap drmap
-  mapM_ print $ map (length . (\a -> fromMaybe [] $ Map.lookup a pmap)) [1..3000]
+  mapM_ print $ map (length . (\a -> fromMaybe [] $ Map.lookup a pmap)) [1..3003]
   --putStrLn "%!PS\n1 setlinecap\n"
   --mapM_ putStr result
   --putStrLn "showpage"
