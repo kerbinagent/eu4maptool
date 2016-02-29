@@ -11,11 +11,17 @@ firstEdge p = (a, b) where
   a = head vs
   b = vs !! 2
 
+firstAltEdge :: PixelPos -> Edge
+firstAltEdge p = (a , b) where
+  vs = toVertice p
+  a = last vs
+  b = vs !! 1
+
 getNextEdge :: ShapeMap -> Word16 -> State Path ()
 getNextEdge m p = do
   es <- get
   let e = last es
-      newV = head [x | x<- edgeToEdge e, isEdge m x p, x/=e]
+      newV = head [x | x<- edgeToEdge e, isEdge m x p]
   put $ es++[newV]
 
 buildPath :: ShapeMap -> Word16 -> State Path ()

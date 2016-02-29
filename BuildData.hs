@@ -42,9 +42,25 @@ buildLeftUpMap :: Map.Map Word16 Vertice -> Vertice -> ShapeMap -> Map.Map Word1
 buildLeftUpMap lumap v@(x,y) smap = if (x==i-1) && (y==j-1) then lumap else
   if Map.member (smap ! v) lumap then buildLeftUpMap lumap (nextv v) smap else buildLeftUpMap (Map.insert (smap ! v) v lumap) (nextv v) smap where
     (_,(i,j)) = bounds smap
-    nextv (a,b) = if b==j-1 then (a+1,1) else (a,b+1)
+    nextv (a,b) = if a==i-1 then (a,b+1) else (a+1,b)
 
-provBezier :: ShapeMap -> Map.Map Word16 Vertice -> Word16 -> [[(Double, Double)]]
-provBezier smap lumap pid = result where
-  ps = execState (buildPath smap pid) [firstEdge (fromMaybe (0,0) (Map.lookup pid lumap))]
+buildRightDownMap :: Map.Map Word16 Vertice -> Vertice -> ShapeMap -> Map.Map Word16 Vertice
+buildRightDownMap rdmap v@(x,y) smap = if (x==1) && (y==1) then rdmap else
+  if Map.member (smap ! v) rdmap then buildRightDownMap rdmap (nextv v) smap else buildRightDownMap (Map.insert (smap ! v) v rdmap) (nextv v) smap where
+    (_,(i,_)) = bounds smap
+    nextv (a,b) = if a==1 then (i-1,b-1) else (a-1,b)
+
+buildLongPath :: ShapeMap -> Map.Map Word16 Vertice -> Map.Map Word16 Vertice -> Map.Map Word16 Path
+buildLongPath smap lumap rdmap  = Map.fromAscList result where
+  getPath stp pid = execState (buildPath smap pid) [firstEdge stp]
+  getAlt stp pid = execState (buildPath smap pid) [firstAltEdge stp]
+  luPath pid = getPath (fromMaybe (0,0) (Map.lookup pid lumap)) pid
+  rdPath pid = getAlt (fromMaybe (0,0) (Map.lookup pid rdmap)) pid
+  longer pid = if length (luPath pid) < length (rdPath pid) then rdPath pid else luPath pid
+  allp = map fst $ Map.toAscList lumap
+  result = zip allp (map longer allp)
+
+provBezier :: Map.Map Word16 Path -> Word16 -> [[(Double, Double)]]
+provBezier pthmap pid = result where
+  ps = fromMaybe [] $ Map.lookup pid pthmap
   result = (getBezierControl . optimalPolygon) ps
