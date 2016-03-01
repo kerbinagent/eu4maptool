@@ -16,13 +16,14 @@ import Parser
 import HistoryType
 import ImageTracer
 
-getProvince :: ReverseDefMap -> Image PixelRGB8 -> Image PixelRGB8 -> PixelPos -> Word16
-getProvince dmap bmp tbmp (x,y) = let PixelRGB8 r g b = pixelAt bmp ((fromIntegral . toInteger) x) ((fromIntegral . toInteger) y)
-                                      PixelRGB8 r' g' b' = pixelAt tbmp ((fromIntegral . toInteger) x) ((fromIntegral . toInteger) y) in
-  if (r',g',b') == (8,31,130) || (r',g',b') == (55,90,220) then 0 else fromMaybe 0 $ (r,g,b) `Map.lookup` dmap
+getProvince :: ReverseDefMap -> Image PixelRGB8 -> Map.Map Word16 Bool -> PixelPos -> Word16
+getProvince dmap bmp seamap (x,y) = let PixelRGB8 r g b = pixelAt bmp ((fromIntegral . toInteger) x) ((fromIntegral . toInteger) y)
+                                        pid = fromMaybe 0 $ (r,g,b) `Map.lookup` dmap
+                                    in
+                                        if Map.member pid seamap then 0 else pid
 
-buildShape :: ReverseDefMap -> Image PixelRGB8 -> Image PixelRGB8 -> ShapeMap
-buildShape dmap bmp tbmp = array ((1,1),(m,n)) [((x,y),p) | x <- [1..m], y<- [1..n], let p = getProvince dmap bmp tbmp (x,y)] where
+buildShape :: ReverseDefMap -> Image PixelRGB8 -> Map.Map Word16 Bool -> ShapeMap
+buildShape dmap bmp seamap = array ((1,1),(m,n)) [((x,y),p) | x <- [1..m], y<- [1..n], let p = getProvince dmap bmp seamap (x,y)] where
   m = fromIntegral $ imageWidth bmp - 1
   n = fromIntegral $ imageHeight bmp - 1
 
@@ -65,4 +66,4 @@ buildLongPath smap lumap rdmap  = Map.fromAscList result where
 provBezier :: Map.Map Word16 Path -> Word16 -> [[(Double, Double)]]
 provBezier pthmap pid = result where
   ps = fromMaybe [] $ Map.lookup pid pthmap
-  result = (getBezierControl . optimalPolygon) ps
+  result = if null ps then [] else (getBezierControl . optimalPolygon) ps
