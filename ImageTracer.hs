@@ -5,17 +5,23 @@ import Data.Word
 import Data.List (nub, minimumBy)
 
 -- construct the first edge of a province from the upper left corner
-firstEdge :: ShapeMap -> Word16 -> Edge
-firstEdge m p = (a, b) where
-  vs = toVertice $ leftUp m p
+firstEdge :: PixelPos -> Edge
+firstEdge p = (a, b) where
+  vs = toVertice p
   a = head vs
   b = vs !! 2
+
+firstAltEdge :: PixelPos -> Edge
+firstAltEdge p = (a , b) where
+  vs = toVertice p
+  a = last vs
+  b = vs !! 1
 
 getNextEdge :: ShapeMap -> Word16 -> State Path ()
 getNextEdge m p = do
   es <- get
-  let e@(_,v) = last es
-      newV = head [x | x<- allEdge v, isEdge m x p, x/=e]
+  let e = last es
+      newV = head [x | x<- edgeToEdge e, isEdge m x p]
   put $ es++[newV]
 
 buildPath :: ShapeMap -> Word16 -> State Path ()
@@ -33,17 +39,17 @@ cutPath xs i j = let
                   if i<=j then take (j-i+1) (snd $ splitAt i xs) else take (j'-i+1) (snd $ splitAt i lxs)
 
 -- build squares around vertices
-buildSquare :: Vertice -> [(Double,Double)]
+buildSquare :: Vertice -> [(Float,Float)]
 buildSquare (a,b) = [(fromIntegral a-0.5,fromIntegral b-0.5),(fromIntegral a+0.5,fromIntegral b-0.5),(fromIntegral a-0.5,fromIntegral b+0.5),(fromIntegral a+0.5,fromIntegral b-0.5)]
 
 -- given a point of departure, calculate the range of inclination of line that can intersects a given square (expressed as a list of vertices
-rangeSquare :: (Double,Double) -> [(Double,Double)] -> (Double,Double)
+rangeSquare :: (Float,Float) -> [(Float,Float)] -> (Float,Float)
 rangeSquare p es = (minimum rg, maximum rg) where
   rg = map (getAlpha p) es
   getAlpha (x,y) (x0,y0) = (y0-y)/(x0-x)
 
 -- given a list of range, test if intersections exist
-hasIntersect :: [(Double,Double)] -> Bool
+hasIntersect :: [(Float,Float)] -> Bool
 hasIntersect rs = maximum (map fst rs) <= minimum (map snd rs)
 
 canApproximate :: Path -> Bool
@@ -86,13 +92,13 @@ optimalPolygon :: Path -> [(Word16,Word16)]
 optimalPolygon path = map (fst . (path !!)) index where
   index = reverse . minimumBy (\x y -> compare (length x) (length y)) . somePolygon $ path
 
-turnDouble :: Vertice -> (Double,Double)
-turnDouble (x,y) = (fromIntegral x, fromIntegral y)
+turnFloat :: Vertice -> (Float,Float)
+turnFloat (x,y) = (fromIntegral x, fromIntegral y)
 
 -- get control points from a path
-getBezierControl :: [Vertice] -> [[(Double,Double)]]
+getBezierControl :: [Vertice] -> [[(Float,Float)]]
 getBezierControl vts = beziers where
-  vs = map turnDouble vts
+  vs = map turnFloat vts
   connect points = zip points (tail points ++ [head points])
   polygon = connect vs
   -- get a polygon that each vertice is the middle point of the edge of the original polygon
@@ -107,13 +113,10 @@ getBezierControl vts = beziers where
   beziers = map (\(a,b) -> [a !! 1, last a, head b, b !! 1]) $ connect segmentVertice
 
 -- given a quadratic bezier curve, draw the curve in appropriate segments
-stepSize :: Double
-stepSize = 1
-
-dToIntDivide :: Double -> Double -> Int
+dToIntDivide :: Float -> Float -> Int
 dToIntDivide a b = round $ a/b
 
-arrOne :: [Double]
+arrOne :: [Float]
 arrOne = map (1/) [1..100]
 
 -- eliminate the warnings
@@ -122,13 +125,12 @@ three = 3
 two :: Int
 two = 2
 
-drawBezier :: [(Double,Double)] -> [((Double, Double), (Double, Double))]
-drawBezier input = (connect . getpoint) times where
+drawBezier :: Float -> [(Float,Float)] -> [(Float, Float)]
+drawBezier stepSize input = getpoint times where
     (x0,y0) = head input
     (x1,y1) = input !! 1
     (x2,y2) = input !! 2
     (x3,y3) = last input
-    connect as = zip (init as) (tail as)
     getpoint = map (\t->((1-t)^three*x0+3*(1-t)^two*t*x1+3*(1-t)*t^two*x2+t^three*x3,(1-t)^three*y0+3*(1-t)^two*t*y1+3*(1-t)*t^two*y2+t^three*y3))
     times = map ((*(arrOne !! (steps-1))) . fromIntegral) [0..steps-1] ++ [1]
     steps = dToIntDivide (sqrt((x1-x0)^two+(y1-y0)^two)+sqrt((x2-x1)^two+(y2-y1)^two)+sqrt((x3-x2)^two+(y3-y2)^two)) stepSize
