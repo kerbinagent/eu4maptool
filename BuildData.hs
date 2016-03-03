@@ -63,7 +63,7 @@ buildLongPath smap lumap rdmap  = Map.fromAscList result where
   allp = map fst $ Map.toAscList lumap
   result = zip allp (map longer allp)
 
-provBezier :: Map.Map Word16 Path -> Word16 -> [[(Double, Double)]]
+provBezier :: Map.Map Word16 Path -> Word16 -> [[(Float, Float)]]
 provBezier pthmap pid = result where
   ps = fromMaybe [] $ Map.lookup pid pthmap
   result = if null ps then [] else (getBezierControl . optimalPolygon) ps

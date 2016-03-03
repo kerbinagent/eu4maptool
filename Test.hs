@@ -8,15 +8,6 @@ import MapType
 import qualified Data.Map as Map
 import Data.Maybe
 
-bezierToPS :: [(Double, Double)] -> String
-bezierToPS = drawps . drawBezier where
-  drawps [] = ""
-  drawps (((x,y),(x',y')):ps) = "newpath\n" ++ show x ++ " " ++ show y ++ " moveto\n" ++ show x' ++ " " ++ show y' ++ " lineto\nstroke\n" ++ drawps ps
-
-result :: [String]
-result = (map bezierToPS . getBezierControl) newbj where
-  newbj = map (\(a,b) -> (a-4500,b-500)) (optimalPolygon beijing)
-
 getsmap :: IO ShapeMap
 getsmap = do
   g <- readFile "resources/definition.csv"
