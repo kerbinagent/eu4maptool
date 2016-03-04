@@ -19,7 +19,7 @@ inRangeProv rmap r = [fst x | x <- Map.toList rmap, snd x `rectIntersect` r ]
 -- transform list of nodes into another coordinate system given its zero point
 -- intended to transform result coming from optimalPolygon in ImageTracer
 transPath :: Int -> Int -> [Vertice] -> [(Int,Int)]
-transPath x y = map (\(a,b) -> (fromIntegral a - x, fromIntegral b - y))
+transPath x y = map (\(a,b) -> (fromIntegral a - x, y - fromIntegral b))
 
 -- perhaps a good starting position
 constantinople :: Vertice
@@ -57,7 +57,7 @@ renderWorld :: WorldType -> IO GS.Picture
 renderWorld (pmap, rmap, _ , (sw, sh), (vx, vy), zoom) = do
   let pvs = inRangeProv rmap $ calcViewFrame sw sh (fromIntegral vx) (fromIntegral vy) zoom
       allbzs = map (concatMap (drawBezier (1/zoom)). getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) pvs
-  return $ mconcat $ map GS.line allbzs
+  return $ GS.scale zoom zoom . mconcat $ map GS.line allbzs
 
 stepWorld :: Float -> WorldType -> IO WorldType
 stepWorld _ = return

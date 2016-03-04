@@ -117,7 +117,7 @@ dToIntDivide :: Float -> Float -> Int
 dToIntDivide a b = round $ a/b
 
 arrOne :: [Float]
-arrOne = map (1/) [1..100]
+arrOne = map (1/) [1..200]
 
 -- eliminate the warnings
 three :: Int
@@ -132,5 +132,5 @@ drawBezier stepSize input = getpoint times where
     (x2,y2) = input !! 2
     (x3,y3) = last input
     getpoint = map (\t->((1-t)^three*x0+3*(1-t)^two*t*x1+3*(1-t)*t^two*x2+t^three*x3,(1-t)^three*y0+3*(1-t)^two*t*y1+3*(1-t)*t^two*y2+t^three*y3))
-    times = map ((*(arrOne !! (steps-1))) . fromIntegral) [0..steps-1] ++ [1]
+    times = map ((*(arrOne !! (min 199 (steps-1)))) . fromIntegral) [0..min 199 steps-1] ++ [1]
     steps = dToIntDivide (sqrt((x1-x0)^two+(y1-y0)^two)+sqrt((x2-x1)^two+(y2-y1)^two)+sqrt((x3-x2)^two+(y3-y2)^two)) stepSize
