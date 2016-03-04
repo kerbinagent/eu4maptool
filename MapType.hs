@@ -10,10 +10,13 @@ type Vertice = (Word16,Word16)
 type Edge = (Vertice, Vertice)
 type Path = [Edge]
 -- mapping province id to province name
-type LocalMap = Map.Map Word16 String
-type DefMap = Map.Map Word16 ColorRGB
+type ProvID = Word16
+type LocalMap = Map.Map ProvID String
+type DefMap = Map.Map ProvID ColorRGB
 type ReverseDefMap = Map.Map ColorRGB Word16
 type ShapeMap = Array (Word16,Word16) Word16
+type RangeMap = Map.Map ProvID ((Word16, Word16), (Word16, Word16))
+type ClosureMap = Map.Map ProvID Path
 type AllProvince = Map.Map Word16 Province
 data Direction = Up | Dn | Lf | Rg
   deriving (Show,Eq)
