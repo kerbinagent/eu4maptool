@@ -18,14 +18,18 @@ getsmap = do
   let smap = buildShape defMap bmp seamap
   return smap
 
+getlumap :: IO (Map.Map ProvID Vertice)
+getlumap = readFile "resources/vanillalu" >>= return . Map.fromAscList . map read . lines
+
+getrdmap :: IO (Map.Map ProvID Vertice)
+getrdmap = readFile "resources/vanillard" >>= return . Map.fromAscList . map read . lines
+
 main :: IO ()
 main = do
-  c <- readFile "resources/vanillalu"
-  b <- readFile "resources/vanillard"
   smap <- getsmap
   let (_,(i,j)) = bounds smap
-  let lumap = Map.fromAscList $ map read (lines c)
-  let drmap = Map.fromAscList $ map read (lines b)
+  lumap <- getlumap
+  drmap <- getrdmap
   let pmap = buildLongPath smap lumap drmap
   let rmap = buildRange pmap
   let plgmap = optimalPolygon <$> pmap
