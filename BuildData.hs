@@ -53,7 +53,7 @@ buildRightDownMap rdmap v@(x,y) smap = if (x==1) && (y==1) then rdmap else
     (_,(i,_)) = bounds smap
     nextv (a,b) = if a==1 then (i-1,b-1) else (a-1,b)
 
-buildLongPath :: ShapeMap -> Map.Map Word16 Vertice -> Map.Map Word16 Vertice -> Map.Map Word16 Path
+buildLongPath :: ShapeMap -> Map.Map Word16 Vertice -> Map.Map Word16 Vertice -> ClosureMap
 buildLongPath smap lumap rdmap  = Map.fromAscList result where
   getPath stp pid = execState (buildPath smap pid) [firstEdge stp]
   getAlt stp pid = execState (buildPath smap pid) [firstAltEdge stp]
@@ -63,7 +63,13 @@ buildLongPath smap lumap rdmap  = Map.fromAscList result where
   allp = map fst $ Map.toAscList lumap
   result = zip allp (map longer allp)
 
-provBezier :: Map.Map Word16 Path -> Word16 -> [[(Float, Float)]]
+buildRange :: ClosureMap -> RangeMap
+buildRange pathmap = pathToRange . map fst <$> pathmap where
+  xrange = map fst
+  yrange = map snd
+  pathToRange p = ((minimum $ xrange p,minimum $ yrange p),(maximum $ xrange p, maximum $ yrange p))
+
+provBezier :: ClosureMap -> Word16 -> [[(Float, Float)]]
 provBezier pthmap pid = result where
   ps = fromMaybe [] $ Map.lookup pid pthmap
   result = if null ps then [] else (getBezierControl . optimalPolygon) ps

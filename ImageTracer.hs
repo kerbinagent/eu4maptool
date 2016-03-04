@@ -88,15 +88,15 @@ somePolygon :: Path -> [[Int]]
 somePolygon path = map (polygonAt path) [0..2]
 
 -- just pick the one path with fewest segments
-optimalPolygon :: Path -> [(Word16,Word16)]
+optimalPolygon :: Path -> [Vertice]
 optimalPolygon path = map (fst . (path !!)) index where
   index = reverse . minimumBy (\x y -> compare (length x) (length y)) . somePolygon $ path
 
-turnFloat :: Vertice -> (Float,Float)
+turnFloat :: (Integral a) => (a,a) -> (Float,Float)
 turnFloat (x,y) = (fromIntegral x, fromIntegral y)
 
 -- get control points from a path
-getBezierControl :: [Vertice] -> [[(Float,Float)]]
+getBezierControl :: (Integral a) => [(a,a)] -> [[(Float,Float)]]
 getBezierControl vts = beziers where
   vs = map turnFloat vts
   connect points = zip points (tail points ++ [head points])
