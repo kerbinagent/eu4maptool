@@ -17,3 +17,5 @@ cabal.sandbox.config
 test
 *.exe
 vanilla
+*~
+resources/provinces
