@@ -46,10 +46,12 @@ moveView v (bw, bh) (sw, sh) zoom len drn = (round x0, round y0) where
   (x0,y0) = (min (max minX vx0) maxX, min (max minY vy0) maxY)
 
 handleEvent :: GS.Event -> WorldType -> IO WorldType
-handleEvent (GS.EventKey (GS.SpecialKey GS.KeyUp) GS.Down _ _) (pmap, rmap, bsize , scr, vp, zoom) = return (pmap , rmap, moveView vp bsize scr zoom (2/zoom) Up, scr, vp, zoom)
-handleEvent (GS.EventKey (GS.SpecialKey GS.KeyDown) GS.Down _ _) (pmap, rmap, bsize , scr, vp, zoom) = return (pmap , rmap, moveView vp bsize scr zoom (2/zoom) Dn, scr, vp, zoom)
-handleEvent (GS.EventKey (GS.SpecialKey GS.KeyLeft) GS.Down _ _) (pmap, rmap, bsize , scr, vp, zoom) = return (pmap , rmap, moveView vp bsize scr zoom (2/zoom) Lf, scr, vp, zoom)
-handleEvent (GS.EventKey (GS.SpecialKey GS.KeyRight) GS.Down _ _) (pmap, rmap, bsize , scr, vp, zoom) = return (pmap , rmap, moveView vp bsize scr zoom (2/zoom) Rg, scr, vp, zoom)
+handleEvent (GS.EventKey (GS.Char 'w') GS.Down _ _) (pmap, rmap, bsize , scr, vp, zoom) = return (pmap , rmap, moveView vp bsize scr zoom (2/zoom) Up, scr, vp, zoom)
+handleEvent (GS.EventKey (GS.Char 's') GS.Down _ _) (pmap, rmap, bsize , scr, vp, zoom) = return (pmap , rmap, moveView vp bsize scr zoom (2/zoom) Dn, scr, vp, zoom)
+handleEvent (GS.EventKey (GS.Char 'a') GS.Down _ _) (pmap, rmap, bsize , scr, vp, zoom) = return (pmap , rmap, moveView vp bsize scr zoom (2/zoom) Lf, scr, vp, zoom)
+handleEvent (GS.EventKey (GS.Char 'd') GS.Down _ _) (pmap, rmap, bsize , scr, vp, zoom) = return (pmap , rmap, moveView vp bsize scr zoom (2/zoom) Rg, scr, vp, zoom)
+handleEvent (GS.EventKey (GS.Char '=') GS.Up _ _) (p,r,b,s,v,z) = return (p,r,b,s,v,z*1.25)
+handleEvent (GS.EventKey (GS.Char '-') GS.Up _ _) (p,r,b,s,v,z) = return (p,r,b,s,v,z*0.8)
 handleEvent _ world = return world
 
 -- render the picture (pmap is the optimalPolygon map)
