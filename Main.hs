@@ -43,7 +43,7 @@ main = do
     (GS.InWindow "EUIV Map Editor" (1280,720) (0,0))
     GS.azure
     1
-    (plgmap, rmap, (i,j), (1920,1080),constantinople, 4.5)
+    (plgmap, rmap, (i,j), (1920,1080),constantinople, 4.5, False)
     renderWorld
     handleEvent
     stepWorld
