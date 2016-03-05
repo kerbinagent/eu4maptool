@@ -12,7 +12,6 @@ type Path = [Edge]
 -- mapping province id to province name
 type ProvID = Word16
 type LocalMap = Map.Map ProvID String
-type CountryLocal = Map.Map Word16 String
 type DefMap = Map.Map ProvID ColorRGB
 type ReverseDefMap = Map.Map ColorRGB Word16
 type ShapeMap = Array (Word16,Word16) Word16
