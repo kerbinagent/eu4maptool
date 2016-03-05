@@ -6,6 +6,7 @@ import Data.List.Split (splitOn)
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Data.Word
+import Data.Char
 import Text.Regex.Posix
 readW :: String -> Word8
 readW = read
@@ -45,3 +46,17 @@ fpToProv :: FilePath -> (Word16, String)
 fpToProv fp = (pid, name) where
   pid = readP $ fp =~ "^[0-9]+"
   name = fp =~ "[a-zA-Z][-a-zA-Z ]+"
+
+parseColor :: String -> [Word8]
+parseColor = map readW . splitOn "  " . (=~ "[0-9]+  [0-9]+  [0-9]+")
+-- hash three letter country code into Word16 int
+hashC :: String -> Int
+hashC cs = sum $ zipWith (\a b -> (ord a - ord 'A') * b) cs [1,26,676]
+
+isLocal :: String -> Bool
+isLocal = (=~ " [A-Z]{3}:")
+oneLocal :: String -> (Word16, String)
+oneLocal d = (cid, name) where
+  cid = fromIntegral . hashC $ d =~ "[A-Z]{3}"
+  name = d =~ "[A-Z][a-z][a-zA-Z ]+"
+-- [snd x | x<- a, length [y | y<- fs, (map toLower (snd x)) `isPrefixOf` (map toLower y)] == 0 ]

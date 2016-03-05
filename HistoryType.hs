@@ -12,10 +12,9 @@ getMil::Word8
 }
 
 data Country = Country {
+countryID::Word16,
 countryname::String,
-religion::Int,
-capital::Word16,
-leaders::[Monarch]
+getcolor::[Word8]
 }
 
 data ProvinceHistory = PHistory {
@@ -30,3 +29,4 @@ controllers::[(String,HistoryDate)]
   deriving(Show)
 
 type ProvCountryMap = Map.Map Word16 Word16
+type CountryMap = Map.Map Word16 Country
