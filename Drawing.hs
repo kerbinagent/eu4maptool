@@ -1,5 +1,6 @@
 module Drawing where
 import MapType
+import HistoryType
 import ImageTracer
 import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
@@ -10,7 +11,7 @@ import Graphics.Gloss.Data.Bitmap
 
 -- the map of paths, the range of bmp , the size of the screen and the viewing position and scaling factor (base 1)
 -- bool is to control close / open of minimap
-type WorldType = (Map.Map Word16 [Vertice], RangeMap, (Word16, Word16), (Float, Float), Vertice, Float, Bool)
+type WorldType = (Map.Map Word16 [Vertice], RangeMap, ProvCountryMap, (Word16, Word16), (Float, Float), Vertice, Float, Bool)
 
 rectIntersect :: (Ord a, Integral a) => ((a,a),(a,a)) -> ((a,a),(a,a)) -> Bool
 rectIntersect ((a,b),(c,d)) ((a',b'),(c',d')) = not $ a'>c || c'<a || b'>d || d'<b
@@ -55,25 +56,26 @@ goFromMiniMap (sw,sh) (bw, bh) zoom (mx,my) = (round x, round y) where
 
 
 handleEvent :: GS.Event -> WorldType -> IO WorldType
-handleEvent (GS.EventKey (GS.SpecialKey GS.KeyUp) GS.Up _ _) (pmap, rmap, bsize , scr, vp, zoom, False) = return (pmap , rmap, bsize, scr,  moveView vp bsize scr zoom (100/zoom) Up, zoom, False)
-handleEvent (GS.EventKey (GS.SpecialKey GS.KeyDown) GS.Up _ _) (pmap, rmap, bsize , scr, vp, zoom, False) = return (pmap , rmap, bsize, scr, moveView vp bsize scr zoom (100/zoom) Dn,  zoom, False)
-handleEvent (GS.EventKey (GS.SpecialKey GS.KeyLeft) GS.Up _ _) (pmap, rmap, bsize , scr, vp, zoom, False) = return (pmap , rmap, bsize, scr, moveView vp bsize scr zoom (100/zoom) Lf, zoom, False)
-handleEvent (GS.EventKey (GS.SpecialKey GS.KeyRight) GS.Up _ _) (pmap, rmap, bsize , scr, vp, zoom, False) = return (pmap , rmap, bsize, scr, moveView vp bsize scr zoom (100/zoom) Rg, zoom, False)
-handleEvent (GS.EventKey (GS.Char 'g') GS.Up _ _) (p,r,b,s,v,z,m) = return (p,r,b,s,v,z,not m)
-handleEvent (GS.EventKey (GS.Char '=') GS.Up _ _) (p,r,b,s,v,z,mini) = return (p,r,b,s,v,z*1.25,mini)
-handleEvent (GS.EventKey (GS.Char '-') GS.Up _ _) (p,r,b,s,v,z,mini) = return (p,r,b,s,v,z*0.8,mini)
-handleEvent (GS.EventKey (GS.MouseButton GS.LeftButton) GS.Up _ mp) (p,r,b,s,_,z, True) = return (p,r,b,s, goFromMiniMap s b z mp, z, False)
+handleEvent (GS.EventKey (GS.SpecialKey GS.KeyUp) GS.Up _ _) (pmap, rmap, pcmap, bsize , scr, vp, zoom, False) = return (pmap , rmap, pcmap, bsize, scr,  moveView vp bsize scr zoom (100/zoom) Up, zoom, False)
+handleEvent (GS.EventKey (GS.SpecialKey GS.KeyDown) GS.Up _ _) (pmap, rmap, pcmap, bsize , scr, vp, zoom, False) = return (pmap , rmap, pcmap, bsize, scr, moveView vp bsize scr zoom (100/zoom) Dn,  zoom, False)
+handleEvent (GS.EventKey (GS.SpecialKey GS.KeyLeft) GS.Up _ _) (pmap, rmap, pcmap, bsize , scr, vp, zoom, False) = return (pmap , rmap, pcmap, bsize, scr, moveView vp bsize scr zoom (100/zoom) Lf, zoom, False)
+handleEvent (GS.EventKey (GS.SpecialKey GS.KeyRight) GS.Up _ _) (pmap, rmap, pcmap, bsize , scr, vp, zoom, False) = return (pmap , rmap, pcmap, bsize, scr, moveView vp bsize scr zoom (100/zoom) Rg, zoom, False)
+handleEvent (GS.EventKey (GS.Char 'g') GS.Up _ _) (p,r,pc,b,s,v,z,m) = return (p,r,pc,b,s,v,z,not m)
+handleEvent (GS.EventKey (GS.Char '=') GS.Up _ _) (p,r,pc,b,s,v,z,mini) = return (p,r,pc,b,s,v,z*1.25,mini)
+handleEvent (GS.EventKey (GS.Char '-') GS.Up _ _) (p,r,pc,b,s,v,z,mini) = return (p,r,pc,b,s,v,z*0.8,mini)
+handleEvent (GS.EventKey (GS.MouseButton GS.LeftButton) GS.Up _ mp) (p,r,pc,b,s,_,z, True) = return (p,r,pc,b,s, goFromMiniMap s b z mp, z, False)
 handleEvent _ world = return world
 
 -- render the picture (pmap is the optimalPolygon map)
 renderWorld :: WorldType -> IO GS.Picture
-renderWorld (pmap, rmap, _ , (sw, sh), (vx, vy), zoom, False) = do
+renderWorld (pmap, rmap, pcmap, _ , (sw, sh), (vx, vy), zoom, False) = do
   let pvs = inRangeProv rmap $ calcViewFrame sw sh (fromIntegral vx) (fromIntegral vy) zoom
       allbzs = map (concatMap (drawBezier (1/zoom)). getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) pvs
-  return $ GS.scale zoom zoom . mconcat $ map GS.line allbzs
-renderWorld (_, _, _, _, _, zoom, True) = do
-  minimap <- loadBMP "resources/miniterrain.bmp"
-  return minimap
+  if zoom>4 then
+    return $ GS.scale zoom zoom . mconcat $ map GS.line allbzs ++ map (GS.color GS.yellow.  GS.polygon) allbzs
+  else
+    return $ GS.scale zoom zoom . mconcat $ map (GS.color GS.yellow . GS.polygon) allbzs
+renderWorld (_, _, _, _, _, _, _, True) = loadBMP "resources/miniterrain.bmp"
 
 stepWorld :: Float -> WorldType -> IO WorldType
 stepWorld _ = return
