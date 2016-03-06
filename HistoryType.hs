@@ -16,6 +16,7 @@ countryID::Word16,
 countryname::String,
 getcolor::[Word8]
 }
+  deriving(Show)
 
 data ProvinceHistory = PHistory {
 provinceID::Word16,

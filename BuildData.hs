@@ -38,8 +38,13 @@ getPCPair dir f = do
 buildPCMap :: String -> [FilePath] -> IO ProvCountryMap
 buildPCMap dir fs = mapM (getPCPair dir) fs >>= return . Map.fromList
 
-buildCLocal :: FilePath -> IO CountryLocal
-buildCLocal f = readFile f >>= return . Map.fromList . map oneLocal . filter isLocal . lines
+getCountryColor :: FilePath -> FilePath -> IO (String, [Word8])
+getCountryColor dir f = do
+  ph <- STIO.readFile (dir++f) >>= return . parseColor
+  return (f,ph)
+
+buildColors :: FilePath -> [FilePath] -> IO [(String, [Word8])]
+buildColors dir = mapM (getCountryColor dir)
 
 buildLeftUpMap :: Map.Map Word16 Vertice -> Vertice -> ShapeMap -> Map.Map Word16 Vertice
 buildLeftUpMap lumap v@(x,y) smap = if (x==i-1) && (y==j-1) then lumap else

@@ -47,12 +47,16 @@ fpToProv fp = (pid, name) where
   pid = readP $ fp =~ "^[0-9]+"
   name = fp =~ "[a-zA-Z][-a-zA-Z ]+"
 
+strToColor :: String -> (String, String, String, [String])
+strToColor = (=~ "([0-9]+)[ \t]+([0-9]+)[ \t]+([0-9]+)")
 parseColor :: String -> [Word8]
-parseColor = map readW . splitOn "  " . (=~ "[0-9]+  [0-9]+  [0-9]+")
+parseColor = map readW . (\(_,_,_,a) -> a) . strToColor . (=~ "[0-9]+[ \t]+[0-9]+[ \t]+[0-9]+")
 -- hash three letter country code into Word16 int
 hashC :: String -> Int
 hashC cs = sum $ zipWith (\a b -> (ord a - ord 'A') * b) cs [1,26,676]
 
+isCountry :: FilePath -> Bool
+isCountry = (=~ "[A-Z][a-z][a-zA-Z]+")
 isLocal :: String -> Bool
 isLocal = (=~ " [A-Z]{3}:")
 oneLocal :: String -> (Word16, String)
