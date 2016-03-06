@@ -70,7 +70,7 @@ coloredPolygon :: ([Word8], GS.Path) -> GS.Picture
 coloredPolygon (a,b) = GS.color (GS.makeColorI (fromIntegral (head a)) (fromIntegral (a !! 1)) (fromIntegral (last a)) 255) $ GS.polygon b
 
 emptyCountry :: Country
-emptyCountry = Country 0 "Nothing" [0,0,0]
+emptyCountry = Country 0 "" [172,179,181]
 
 -- render the picture (pmap is the optimalPolygon map)
 renderWorld :: WorldType -> IO GS.Picture
