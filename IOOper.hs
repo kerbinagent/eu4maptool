@@ -1,6 +1,6 @@
 module IOOper where
 import System.Directory
-import Data.List (isPrefixOf)
+import Data.Maybe (fromMaybe)
 import Data.Array
 import Data.Word
 import qualified Data.Map as Map
@@ -39,20 +39,21 @@ provPath = "resources/provinces/"
 countryPath :: FilePath
 countryPath = "resources/countries/"
 
+countryPathConfig :: FilePath
+countryPathConfig = "resources/00_countries.txt"
+
 localCPath :: FilePath
 localCPath = "resources/countries_l_english.yml"
 
-colorException :: FilePath
-colorException = "resources/cornersol"
-
-getcountries :: FilePath -> FilePath -> IO CountryMap
-getcountries f dir = do
+getcountries :: FilePath -> FilePath -> FilePath -> IO CountryMap
+getcountries f cp dir = do
   local <- readFile f >>= return . map oneLocal . filter isLocal . lines
   fs <- getDirectoryContents dir
+  -- drop 10 to eliminate "countries/" prefix
+  cf <- readFile cp >>= return . filter (not . null . snd) . map ((\(_,_,_,a) -> if null a then (0,"") else (hashC (head a), drop 10 (last a))) . getPathConfig) . filter isPathConfig . lines
   colors <- buildColors dir $ filter isCountry fs
-  exceptions <- readFile colorException >>= return . map read . lines
-  let exceptionmap = Map.fromList [(fst x, uncurry Country y (snd x)) | x<- exceptions, y <- local, fst x == fst y]
-  return $ exceptionmap `Map.union` Map.unions [Map.singleton (fst l) (uncurry Country l (snd c)) | l <- local, c <- colors, snd l `isPrefixOf` fst c]
+  let colormap = Map.fromList colors
+  return $ Map.unions [Map.singleton (fst l) (uncurry Country l (fromMaybe [255,255,255] (Map.lookup (snd c) colormap))) | l <- local, c <- cf, fst l == fromIntegral (fst c) ]
 
 initData :: IO (PolygonMap, RangeMap, ProvCountryMap, CountryMap, (Word16,Word16))
 initData = do
@@ -61,7 +62,7 @@ initData = do
   lumap <- getlumap
   drmap <- getrdmap
   pcmap <- getpcmap provPath
-  ctmap <- getcountries localCPath countryPath
+  ctmap <- getcountries localCPath countryPathConfig countryPath
   let pmap = buildLongPath smap lumap drmap
   let rmap = buildRange pmap
   let plgmap = optimalPolygon <$> pmap

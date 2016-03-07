@@ -64,3 +64,8 @@ oneLocal d = (cid, name) where
   cid = fromIntegral . hashC $ d =~ "[A-Z]{3}"
   name = d =~ "[A-Z][a-z][a-zA-Z ]+"
 -- [snd x | x<- a, length [y | y<- fs, (map toLower (snd x)) `isPrefixOf` (map toLower y)] == 0 ]
+
+isPathConfig :: String -> Bool
+isPathConfig = (=~ "[A-Z]{3}")
+getPathConfig :: String -> (String, String, String, [String])
+getPathConfig = (=~ "([A-Z]{3})[\t ]*= \"([ ./_a-zA-Z]+)\"")
