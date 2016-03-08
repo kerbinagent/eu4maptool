@@ -76,10 +76,12 @@ emptyCountry = Country 0 "" [172,179,181]
 renderWorld :: WorldType -> IO GS.Picture
 renderWorld ((pmap, rmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = do
   let pvs = inRangeProv rmap $ calcViewFrame sw sh (fromIntegral vx) (fromIntegral vy) zoom
-      allbzs = map (concatMap (drawBezier (1/zoom)). getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) pvs
+      ctp = map (getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) pvs
+      allbzs = map (concatMap (drawBezier (1/zoom))) ctp
+      thickbzs = map (concatMap (thickBezier (1/zoom) 1.25)) ctp
       colors = map (\p -> getcolor $ fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap) pvs
   if zoom>4 then
-    return $ GS.scale zoom zoom . mconcat $ map GS.line allbzs
+    return $ GS.scale zoom zoom . mconcat . mconcat $ map (map GS.polygon) thickbzs
   else
     return $ GS.scale zoom zoom . mconcat $ map coloredPolygon (zip colors allbzs)
 renderWorld (_, _, _, _, _, True) = loadBMP "resources/miniterrain.bmp"
