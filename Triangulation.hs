@@ -39,7 +39,7 @@ getEar polygon = case polygon of
                   []->([],[])
                   [_]->([],[])
                   [_,_]->([],[])
-                  p1:p2:p3:ps->if isInsidePolygon p1 p2 p3 polygon then ([p1,p2,p3],p1:p3:ps) else getEar$listRot polygon
+                  p1:p2:p3:ps->if isInsidePolygon p1 p2 p3 polygon then ([p1,p2,p3],listRot(p1:p3:ps)) else getEar$listRot polygon
 
 
 triangulate :: Polygon->[Triangle]
