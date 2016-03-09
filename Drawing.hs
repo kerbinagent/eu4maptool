@@ -8,6 +8,7 @@ import Data.Word
 import Data.Monoid ((<>))
 import qualified Graphics.Gloss.Interface.IO.Game as GS
 import Graphics.Gloss.Data.Bitmap
+import qualified Triangulation as TRI
 
 -- the map of paths, the range of bmp , the size of the screen and the viewing position and scaling factor (base 1)
 -- bool is to control close / open of minimap
@@ -69,6 +70,9 @@ handleEvent _ world = return world
 coloredPolygon :: ([Word8], GS.Path) -> GS.Picture
 coloredPolygon (a,b) = GS.color (GS.makeColorI (fromIntegral (head a)) (fromIntegral (a !! 1)) (fromIntegral (last a)) 255) $ GS.polygon b
 
+coloredPolygons :: ([Word8], [GS.Path]) -> GS.Picture
+coloredPolygons (cs, ps) = mconcat $ map coloredPolygon (map ((,) cs) ps)
+
 emptyCountry :: Country
 emptyCountry = Country 0 "" [172,179,181]
 
@@ -83,7 +87,7 @@ renderWorld ((pmap, rmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = 
   if zoom>4 then
     return $ GS.scale zoom zoom . mconcat . mconcat $ map (map GS.polygon) thickbzs
   else
-    return $ GS.scale zoom zoom . mconcat $ map coloredPolygon (zip colors allbzs)
+    return $ GS.scale zoom zoom . mconcat $ map coloredPolygons (zip colors (map TRI.triangulate allbzs))
 renderWorld (_, _, _, _, _, True) = loadBMP "resources/miniterrain.bmp"
 
 stepWorld :: Float -> WorldType -> IO WorldType

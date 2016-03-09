@@ -3,9 +3,7 @@
 -- output list of triangles (a triangle is a list of three points)
 -- the way we check if an ear is inside a polygon is rigorous, but it should work fine for
 -- our purpose
-module Triangulation where 
-import Data.List
-import Control.Monad.State
+module Triangulation where
 type Point = (Float,Float)
 type Vector = (Float,Float)
 type Polygon = [Point]
@@ -39,34 +37,12 @@ listRot (x:xs) = xs++[x]
 getEar :: Polygon->(Triangle,Polygon)
 getEar polygon = case polygon of
                   []->([],[])
-                  [p1]->([],[])
-                  [p1,p2]->([],[])
-                  p1:p2:p3:ps->case isInsidePolygon p1 p2 p3 polygon of
-                                 True->([p1,p2,p3],p1:p3:ps)
-                                 False->getEar$listRot polygon
-
-{-}
-oneStep = do
-  (a,s)<-get
-  put (getEar s)
-
-State ()
-sequenceStep = do
-  oneStep
-  (a,s)<-get
-  if s==[] then put (getEar s) else oneStep
-  -}
+                  [_]->([],[])
+                  [_,_]->([],[])
+                  p1:p2:p3:ps->if isInsidePolygon p1 p2 p3 polygon then ([p1,p2,p3],p1:p3:ps) else getEar$listRot polygon
 
 
 triangulate :: Polygon->[Triangle]
 triangulate input = if length input == 3 then [input] else triangle:triangulate polygon where
   triangle = fst (getEar input)
   polygon = snd (getEar input)
-
--- test
-p0,p1,p2,p3::(Float,Float)
-p0=(0.0,0.0)
-p1=(1.0,0.0)
-p2=(1.0,1.0)
-p3=(0.0,1.0)
-polygon=[p0,p1,p2,p3]
