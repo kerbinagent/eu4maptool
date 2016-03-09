@@ -13,7 +13,7 @@ import ImageTracer
 
 getsmap :: IO ShapeMap
 getsmap = do
-  g <- readFile "resources/definition.csv"
+  g <- readFile "resources/altdef.csv"
   let defMap = parseRDef g
   Right (ImageRGB8 bmp) <- readBitmap "resources/provinces.bmp"
   s <- readFile "resources/sealist"

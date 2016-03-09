@@ -43,6 +43,21 @@ getEar polygon = case polygon of
 
 
 triangulate :: Polygon->[Triangle]
-triangulate input = if length input == 3 then [input] else triangle:triangulate polygon where
+triangulate input = if length input <= 3 then [input] else triangle:triangulate polygon where
   triangle = fst (getEar input)
   polygon = snd (getEar input)
+
+-- test
+p0,p1,p2,p3,p4,p5,p6,p7,p8,p9::Point
+p0=(0,0)
+p1=(2,0)
+p2=(1,-2)
+p3=(4,-2)
+p4=(3,3)
+p5=(0,1)
+p6=(-3,3)
+p7=(-4,-2)
+p8=(-1,-2)
+p9=(-2,0)
+polygon::Polygon
+polygon=[p0,p1,p2,p3,p4,p5,p6,p7,p8,p9]
