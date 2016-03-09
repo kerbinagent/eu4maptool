@@ -81,13 +81,15 @@ renderWorld :: WorldType -> IO GS.Picture
 renderWorld ((pmap, rmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = do
   let pvs = inRangeProv rmap $ calcViewFrame sw sh (fromIntegral vx) (fromIntegral vy) zoom
       ctp = map (getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) pvs
-      allbzs = map (concatMap (drawBezier (1/zoom))) ctp
+      allbzs = map (concatMap (init . drawBezier (1/zoom))) ctp
+      testctp = map (getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) [1816]
+      test = map (concatMap (init . drawBezier (1/zoom))) testctp
       thickbzs = map (concatMap (thickBezier (1/zoom) 1.1)) ctp
       colors = map (\p -> getcolor $ fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap) pvs
   if zoom>4 then
     return $ GS.scale zoom zoom . mconcat . mconcat $ map (map GS.polygon) thickbzs
   else
-    return $ GS.scale zoom zoom . mconcat $ map coloredPolygons (zip colors (map TRI.triangulate allbzs))
+    return $ GS.scale zoom zoom . mconcat $ map coloredPolygons (zip colors (map TRI.triangulate test))
 renderWorld (_, _, _, _, _, True) = loadBMP "resources/miniterrain.bmp"
 
 stepWorld :: Float -> WorldType -> IO WorldType
