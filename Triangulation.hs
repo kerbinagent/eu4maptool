@@ -44,7 +44,7 @@ getEar polygon = case polygon of
 
 
 triangulate :: Polygon->[Triangle]
-triangulate input = if length input <= 3 then [input] else triangle:triangulate polygon where
+triangulate input = if length input <= 3 then [input] else if windingNumber input == (-1) then triangulate (reverse input) else triangle:triangulate polygon where
   triangle = fst (getEar input)
   polygon = snd (getEar input)
 -----------------------------------------
@@ -55,7 +55,7 @@ getVectors polygon = zipWith subtrv (listRot polygon) polygon
 getAngle :: Vector->Vector->Float
 getAngle (x1,y1) (x0,y0)
   |u>=0 = theta
-  |u<0 && v>0 = pi-theta
+  |u<0 && v>=0 = pi-theta
   |u<0 && v<0 = -pi-theta
   where
     theta = asin (v/sqrt(u^2+v^2))
