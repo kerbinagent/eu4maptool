@@ -1,6 +1,6 @@
 module HistoryType where
 import Data.Word
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 type HistoryDate = (Word16,Word8,Word8)
 data Monarch = Monarch {
 monarchname::String,

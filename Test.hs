@@ -5,7 +5,7 @@ import Data.Array
 import ImageTracer
 import Beijing
 import MapType
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Data.Maybe
 
 getsmap :: IO ShapeMap

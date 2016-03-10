@@ -2,7 +2,7 @@ module Drawing where
 import MapType
 import HistoryType
 import ImageTracer
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe, fromJust)
 import Data.Word
 import Data.Monoid ((<>))

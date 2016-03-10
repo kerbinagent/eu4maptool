@@ -1,7 +1,7 @@
 -- type definitions and handy small functions
 module MapType where
 import Data.Word
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Data.Array
 type ColorRGB = (Word8,Word8,Word8)
 type PixelPos = (Word16,Word16)

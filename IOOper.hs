@@ -3,7 +3,7 @@ import System.Directory
 import Data.Maybe (fromMaybe)
 import Data.Array
 import Data.Word
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Codec.Picture
 import MapType
 import HistoryType
