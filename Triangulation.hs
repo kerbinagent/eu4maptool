@@ -58,7 +58,7 @@ getAngle (x1,y1) (x0,y0)
   |u<0 && v>0 = pi-theta
   |u<0 && v<0 = -pi-theta
   where
-    theta = asin (u/sqrt(u^2+v^2))
+    theta = asin (v/sqrt(u^2+v^2))
     u = x1*x0+y1*y0
     v = x0*y1-x1*y0
 
@@ -67,3 +67,10 @@ getAngles vectors = zipWith getAngle (listRot vectors) vectors
 
 windingNumber :: Polygon->Float
 windingNumber = (/(2*pi)).sum.getAngles.delete (0.0,0.0).getVectors
+------------------------------
+p0,p1,p2,p3 :: Point
+p0=(0,0)
+p1=(1,0)
+p2=(1,1)
+p3=(0,1)
+polygon=[p0,p1,p2,p3]
