@@ -70,8 +70,8 @@ handleEvent _ world = return world
 coloredPolygon :: ([Word8], GS.Path) -> GS.Picture
 coloredPolygon (a,b) = GS.color (GS.makeColorI (fromIntegral (head a)) (fromIntegral (a !! 1)) (fromIntegral (last a)) 255) $ GS.polygon b
 
-coloredPolygons :: ([Word8], [GS.Path]) -> GS.Picture
-coloredPolygons (cs, ps) = mconcat $ map coloredPolygon (map ((,) cs) ps)
+coloredShape :: [Word8] -> GS.Picture -> GS.Picture
+coloredShape cs p = GS.color (GS.makeColorI (fromIntegral (head cs)) (fromIntegral (cs !! 1)) (fromIntegral (last cs)) 255) p
 
 emptyCountry :: Country
 emptyCountry = Country 0 "" [172,179,181]
@@ -82,14 +82,16 @@ renderWorld ((pmap, rmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = 
   let pvs = inRangeProv rmap $ calcViewFrame sw sh (fromIntegral vx) (fromIntegral vy) zoom
       ctp = map (getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) pvs
       allbzs = map (concatMap (init . drawBezier (4/zoom))) ctp
-      testctp = map (getBezierControl . transPath (fromIntegral 4500) (fromIntegral 750) . fromMaybe [] . (`Map.lookup` pmap)) [1816]
-      test = map (concatMap (init . drawBezier (4/zoom))) testctp
       thickbzs = map (concatMap (thickBezier (1/zoom) 1.1)) ctp
+      thickerbzs = map (concatMap (thickBezier (1/zoom) (8/zoom))) ctp
+      thickshape = mconcat $ map (map GS.polygon) thickbzs
+      thickershape = mconcat $ zipWith coloredShape colors $ mconcat $ map (map GS.polygon) thickerbzs
       colors = map (\p -> getcolor $ fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap) pvs
+      colorpart = mconcat $ zipWith coloredShape colors (map (mconcat . map GS.polygon . TRI.triangulate) allbzs)
   if zoom>4 then
-    return $ GS.scale zoom zoom . mconcat . mconcat $ map (map GS.polygon) thickbzs
+    return $ GS.scale zoom zoom $  colorpart <> mconcat thickshape
   else
-    return $ GS.scale zoom zoom . mconcat $ (map (mconcat . map GS.polygon . TRI.triangulate) test)
+    return $ GS.scale zoom zoom $ thickershape
 renderWorld (_, _, _, _, _, True) = loadBMP "resources/miniterrain.bmp"
 
 stepWorld :: Float -> WorldType -> IO WorldType

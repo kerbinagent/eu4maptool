@@ -68,9 +68,9 @@ getAngles vectors = zipWith getAngle (listRot vectors) vectors
 windingNumber :: Polygon->Int
 windingNumber = round.(/(2*pi)).sum.getAngles.delete (0.0,0.0).getVectors
 ------------------------------
-p0,p1,p2,p3 :: Point
-p0=(0,0)
-p1=(1,0)
-p2=(1,1)
-p3=(0,1)
-polygon=[p0,p1,p2,p3]
+--p0,p1,p2,p3 :: Point
+--p0=(0,0)
+--p1=(1,0)
+--p2=(1,1)
+--p3=(0,1)
+--polygon=[p0,p1,p2,p3]
