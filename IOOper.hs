@@ -65,5 +65,5 @@ initData = do
   ctmap <- getcountries localCPath countryPathConfig countryPath
   let pmap = buildLongPath smap lumap drmap
   let rmap = buildRange pmap
-  let plgmap = optimalPolygon <$> pmap
+  let plgmap = getBezierControl . optimalPolygon <$> pmap
   return (plgmap, rmap, pcmap, ctmap, (i,j))

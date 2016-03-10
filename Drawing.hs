@@ -23,8 +23,8 @@ inRangeProv rmap r = [fst x | x <- Map.toList rmap, snd x `rectIntersect` r ]
 
 -- transform list of nodes into another coordinate system given its zero point
 -- intended to transform result coming from optimalPolygon in ImageTracer
-transPath :: Int -> Int -> [Vertice] -> [(Int,Int)]
-transPath x y = map (\(a,b) -> (fromIntegral a - x, y - fromIntegral b))
+transPath :: Float -> Float -> [(Float, Float)] -> [(Float,Float)]
+transPath x y = map (\(a,b) -> (a - x, y - b))
 
 -- perhaps a good starting position
 constantinople :: Vertice
@@ -62,6 +62,7 @@ handleEvent (GS.EventKey (GS.SpecialKey GS.KeyDown) GS.Up _ _) (ms, bsize , scr,
 handleEvent (GS.EventKey (GS.SpecialKey GS.KeyLeft) GS.Up _ _) (ms, bsize , scr, vp, zoom, False) = return (ms, bsize, scr, moveView vp bsize scr zoom (100/zoom) Lf, zoom, False)
 handleEvent (GS.EventKey (GS.SpecialKey GS.KeyRight) GS.Up _ _) (ms, bsize , scr, vp, zoom, False) = return (ms, bsize, scr, moveView vp bsize scr zoom (100/zoom) Rg, zoom, False)
 handleEvent (GS.EventKey (GS.Char 'g') GS.Up _ _) (ms,b,s,v,z,m) = return (ms,b,s,v,z,not m)
+handleEvent (GS.EventKey (GS.Char 'h') GS.Up _ _) (ms,b,s,_,z,False) = return (ms,b,s,constantinople,z,False)
 handleEvent (GS.EventKey (GS.Char '=') GS.Up _ _) (ms,b,s,v,z,mini) = return (ms,b,s,v,z*1.25,mini)
 handleEvent (GS.EventKey (GS.Char '-') GS.Up _ _) (ms,b,s,v,z,mini) = return (ms,b,s,v,z*0.8,mini)
 handleEvent (GS.EventKey (GS.MouseButton GS.LeftButton) GS.Up _ mp) (ms,b,s,_,z, True) = return (ms,b,s, goFromMiniMap s b z mp, z, False)
@@ -80,11 +81,11 @@ emptyCountry = Country 0 "" [172,179,181]
 renderWorld :: WorldType -> IO GS.Picture
 renderWorld ((pmap, rmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = do
   let pvs = inRangeProv rmap $ calcViewFrame sw sh (fromIntegral vx) (fromIntegral vy) zoom
-      ctp = map (getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) pvs
-      drawcurve = mconcat . map GS.polygon . thickBezier (1/zoom) (4/zoom)
+      ctp = map (map (transPath (fromIntegral vx) (fromIntegral vy)) . fromMaybe [] . (`Map.lookup` pmap)) pvs
+      drawcurve = mconcat . map GS.polygon . thickBezier (2/zoom) (4/zoom)
       drawprov = mconcat . map drawcurve
       allbzs = map (concatMap (init . drawBezier (4/zoom))) ctp
-      thickbzs = map (concatMap (thickBezier (1/zoom) 1.1)) ctp
+      thickbzs = map (concatMap (thickBezier (2/zoom) 1.1)) ctp
       thickerbzs = map (\(c,s) ->  coloredShape c $ drawprov s)  (zip colors ctp)
       thickshape = mconcat $ map (map GS.polygon) thickbzs
       colors = map (\p -> getcolor $ fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap) pvs
