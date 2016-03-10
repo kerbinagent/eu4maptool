@@ -4,6 +4,7 @@
 -- the way we check if an ear is inside a polygon is rigorous, but it should work fine for
 -- our purpose
 module Triangulation where
+import Data.List
 type Point = (Float,Float)
 type Vector = (Float,Float)
 type Polygon = [Point]
@@ -43,24 +44,26 @@ getEar polygon = case polygon of
 
 
 triangulate :: Polygon->[Triangle]
-triangulate input = if length input_r <= 3 then [input] else triangle:triangulate polygon where
+triangulate input = if length input <= 3 then [input] else triangle:triangulate polygon where
   triangle = fst (getEar input)
   polygon = snd (getEar input)
+-----------------------------------------
+subtrv (x1,y1) (x0,y0) = (x1-x0,y1-y0)
+getVectors :: Polygon->[Vector]
+getVectors polygon = zipWith subtrv (listRot polygon) polygon
 
-triangulate_clockwise :: Polygon->[Triangle]
-triangulate_clockwise = triangulate.reverse
+getAngle :: Vector->Vector->Float
+getAngle (x1,y1) (x0,y0)
+  |u>=0 = theta
+  |u<0 && v>0 = pi-theta
+  |u<0 && v<0 = -pi-theta
+  where
+    theta = asin (u/sqrt(u^2+v^2))
+    u = x1*x0+y1*y0
+    v = x0*y1-x1*y0
 
--- test
-p0,p1,p2,p3,p4,p5,p6,p7,p8,p9::Point
-p0=(0,0)
-p1=(2,0)
-p2=(1,-2)
-p3=(4,-2)
-p4=(3,3)
-p5=(0,1)
-p6=(-3,3)
-p7=(-4,-2)
-p8=(-1,-2)
-p9=(-2,0)
-polygon::Polygon
-polygon=[p0,p1,p2,p3,p4,p5,p6,p7,p8,p9]
+getAngles :: [Vector]->[Float]
+getAngles vectors = zipWith getAngle (listRot vectors) vectors
+
+windingNumber :: Polygon->Float
+windingNumber = (/(2*pi)).sum.getAngles.delete (0.0,0.0).getVectors
