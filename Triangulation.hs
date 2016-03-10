@@ -43,9 +43,12 @@ getEar polygon = case polygon of
 
 
 triangulate :: Polygon->[Triangle]
-triangulate input = if length input <= 3 then [input] else triangle:triangulate polygon where
+triangulate input = if length input_r <= 3 then [input] else triangle:triangulate polygon where
   triangle = fst (getEar input)
   polygon = snd (getEar input)
+
+triangulate_clockwise :: Polygon->[Triangle]
+triangulate_clockwise = triangulate.reverse
 
 -- test
 p0,p1,p2,p3,p4,p5,p6,p7,p8,p9::Point
