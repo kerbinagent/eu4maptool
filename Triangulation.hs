@@ -65,8 +65,8 @@ getAngle (x1,y1) (x0,y0)
 getAngles :: [Vector]->[Float]
 getAngles vectors = zipWith getAngle (listRot vectors) vectors
 
-windingNumber :: Polygon->Float
-windingNumber = (/(2*pi)).sum.getAngles.delete (0.0,0.0).getVectors
+windingNumber :: Polygon->Int
+windingNumber = round.(/(2*pi)).sum.getAngles.delete (0.0,0.0).getVectors
 ------------------------------
 p0,p1,p2,p3 :: Point
 p0=(0,0)
