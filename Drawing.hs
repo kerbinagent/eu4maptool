@@ -81,17 +81,18 @@ renderWorld :: WorldType -> IO GS.Picture
 renderWorld ((pmap, rmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = do
   let pvs = inRangeProv rmap $ calcViewFrame sw sh (fromIntegral vx) (fromIntegral vy) zoom
       ctp = map (getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) pvs
+      drawcurve = mconcat . map GS.polygon . thickBezier (1/zoom) (4/zoom)
+      drawprov = mconcat . map drawcurve
       allbzs = map (concatMap (init . drawBezier (4/zoom))) ctp
       thickbzs = map (concatMap (thickBezier (1/zoom) 1.1)) ctp
-      thickerbzs = map (concatMap (thickBezier (1/zoom) (8/zoom))) ctp
+      thickerbzs = map (\(c,s) ->  coloredShape c $ drawprov s)  (zip colors ctp)
       thickshape = mconcat $ map (map GS.polygon) thickbzs
-      thickershape = mconcat $ zipWith coloredShape colors $ mconcat $ map (map GS.polygon) thickerbzs
       colors = map (\p -> getcolor $ fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap) pvs
       colorpart = mconcat $ zipWith coloredShape colors (map (mconcat . map GS.polygon . TRI.triangulate) allbzs)
   if zoom>4 then
     return $ GS.scale zoom zoom $  colorpart <> mconcat thickshape
   else
-    return $ GS.scale zoom zoom $ thickershape
+    return $ GS.scale zoom zoom $ mconcat thickerbzs <> colorpart
 renderWorld (_, _, _, _, _, True) = loadBMP "resources/miniterrain.bmp"
 
 stepWorld :: Float -> WorldType -> IO WorldType
