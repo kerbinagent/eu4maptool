@@ -21,11 +21,23 @@ absoluteAngle (u,v)
   |u<0&&v<0 = -pi - asin (u/r)
   where r=sqrt$u^2+v^2
 
+{-
 -- stupidAngle takes a vector and output the angle this vector is rotated clockwisely from y-axis, in radian
 -- the output is within [-0.5pi,1.5pi)
 stupidAngle :: Vector->Float
 stupidAngle vector = 0.5*pi - absoluteAngle vector
+-}
 
+getAngle :: Vector->Vector->Float
+getAngle (x1,y1) (x0,y0)
+  |u>=0 = theta
+  |u<0 && v>=0 = pi-theta
+  |u<0 && v<0 = -pi-theta
+  where
+    theta = asin (v/sqrt(u^2+v^2))
+    u = x1*x0+y1*y0
+    v = x0*y1-x1*y0
+    
 -- intersectLine takes two lines (assume they do intersect) and outputs the intersection
 intersectLine :: (Float,Float,Float)->(Float,Float,Float)->Point
 intersectLine (a1,b1,c1) (a2,b2,c2) = ((-b2*c1+b1*c2)/(a1*b2-a2*b1),(a2*c1-a1*c2)/(a1*b2-a2*b1))
@@ -89,15 +101,23 @@ drawLine (x1,y1) (x2,y2) n
 
 
 drawArc :: Point->Point->Point->Point->Float->Int->[(Point,Float)]
-drawArc =undefined{-(xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
-  |x0<=xc
-  |x0>xc
+drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
+-- center of circle above center of the word, alphabet pointing inward, alphabets increase angle
+  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, -convertAngle angle))).(map ((\j->(startAngle + deltaAngle * (j - 0.5))).fromIntegral))$[1..n]
+-- center of circle below center of the word, alphabet pointing inward, alphabets decrease angle
+  |y0>yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - deltaAngle * (j - 0.5))).fromIntegral))$[1..n]
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     startAngle = absoluteAngle (leftX-xc,leftY-yc)
-    endAngle = absoluteAngle (rightX-xc,rightY-yc)
--}
+    deltaAngle = abs$ getAngle (leftX-xc,leftY-yc) (rightX-xc,rightY-yc)
+    getPosition (xc,yc) r angle = (xc+r*cos angle,yc+r*sin angle)
 
+-- convertAngle receives angle decribing position of the alphabet convert it into
+-- the orientation of the outwardly pointing alphabet (in degree and clockwise from y-axis)
+convertAngle :: Float->Float
+convertAngle rad = (180/pi)*(0.5*pi-rad)
+
+{-
 -- getAlphaOrient takes center of circle and a point on circumference
 -- and calculate the orientation of alphabet at that point
 -- (clockse relative to y-axis, in degree)
@@ -107,3 +127,4 @@ getAlphaOrient :: Point->Point->Bool->Float
 getAlphaOrient (xc,yc) (x,y) bool
   |bool = stupidAngle (x-xc,y-yc) *180/pi
   |otherwise = stupidAngle (xc-x,yc-y) *180/pi
+-}
