@@ -31,11 +31,17 @@ intersectLine :: (Float,Float,Float)->(Float,Float,Float)->Point
 intersectLine (a1,b1,c1) (a2,b2,c2) = ((-b2*c1+b1*c2)/(a1*b2-a2*b1),(a2*c1-a1*c2)/(a1*b2-a2*b1))
 
 --------------------------------------------
-getMid::Polygon->Point
-getMid polygon=(x/fromIntegral n,y/fromIntegral n) where
+getMid0::Polygon->Point
+getMid0 polygon=(x/fromIntegral n,y/fromIntegral n) where
   x=sum $ map fst polygon
   y=sum $ map snd polygon
   n=length polygon
+
+getMid::Polygon->Point
+getMid polygon=(0.5*(x1+x2),0.5*(y1+y2) where
+  (x0,y0)=getMid0 polygon
+  (x1,y1)=getClosest polygon (x0,y0)
+  (x2,y2)=getAntipode (x1,y1)
 
 -- given a polygon edge and a point p0, get the point furthest on edge to p0
 getFurthest::Polygon->Point->Point
@@ -44,6 +50,14 @@ getFurthest (x:xs) p0
     |dist x p0 < dist y p0 = y
     |otherwise = x
     where y = getFurthest xs p0
+
+-- given a polygon edge and a point p0, get the point closest on edge to p0
+getClosest::Polygon->Point->Point
+getClosest [x] _ = x
+getClosest (x:xs) p0
+    |dist x p0 > dist y p0 = y
+    |otherwise = x
+    where y = getClosest xs p0
 
 -- given a polygon edge and a point p0 inside edge, get the antipode of p0
 getAntipode::Polygon->Point->Point
