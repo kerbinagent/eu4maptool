@@ -37,7 +37,7 @@ getAngle (x1,y1) (x0,y0)
     theta = asin (v/sqrt(u^2+v^2))
     u = x1*x0+y1*y0
     v = x0*y1-x1*y0
-    
+
 -- intersectLine takes two lines (assume they do intersect) and outputs the intersection
 intersectLine :: (Float,Float,Float)->(Float,Float,Float)->Point
 intersectLine (a1,b1,c1) (a2,b2,c2) = ((-b2*c1+b1*c2)/(a1*b2-a2*b1),(a2*c1-a1*c2)/(a1*b2-a2*b1))
@@ -64,8 +64,8 @@ getAntipode polygon p0 = polygon!!(index `mod` (length polygon)) where
 
 -- check if the center is approximately on line joining furthest point and its antipode
 isColinear :: Point->Point->Point->Bool
-isColinear (x0,y0) (x1,y1) (x2,y2) = if dist <=5 then True else False where
-  dist = ((y2-y1)*x0-(x2-x1)*y0+x2*y1-y2*x1)/(sqrt((y2-y1)^2+(x2-x1)^2))
+isColinear (x0,y0) (x1,y1) (x2,y2) = if distance <=0.05*dist (x1,y1) (x2,y2) then True else False where
+  distance = abs$((y2-y1)*x0-(x2-x1)*y0+x2*y1-y2*x1)/(sqrt((y2-y1)^2+(x2-x1)^2))
 
 -- if the three points are not colinear, get the center of circle passing through them
 getCenterRad :: Point->Point->Point->(Point,Float)
