@@ -98,7 +98,7 @@ drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     startAngle = absoluteAngle (leftX-xc,leftY-yc)
     deltaAngle = abs$ getAngle (leftX-xc,leftY-yc) (rightX-xc,rightY-yc)
-    stepAngle = deltaAngle/(n+1)
+    stepAngle = deltaAngle/(fromIntegral n+1)
     getPosition (x',y') r' angle = (x'+r'*cos angle,y'+r'*sin angle)
 
 -- convertAngle receives angle decribing position of the alphabet convert it into
