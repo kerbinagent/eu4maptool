@@ -14,9 +14,9 @@ dist (x0,y0) (x1,y1) = sqrt$ (x0-x1)^2+(y0-y1)^2
 absoluteAngle :: Vector->Float
 absoluteAngle (u,v)
   |(u,v)==(0,0) = 0
-  |u>=0 = asin (u/r)
-  |u<0&&v>=0 = pi - asin (u/r)
-  |u<0&&v<0 = -pi - asin (u/r)
+  |u>=0 = asin (v/r)
+  |u<0&&v>=0 = pi - asin (v/r)
+  |u<0&&v<0 = -pi - asin (v/r)
   where r=sqrt$u^2+v^2
 
 {-
@@ -38,10 +38,10 @@ getMid0 polygon=(x/fromIntegral n,y/fromIntegral n) where
   n=length polygon
 
 getMid::Polygon->Point
-getMid polygon=(0.5*(x1+x2),0.5*(y1+y2) where
+getMid polygon=(0.5*(x1+x2),0.5*(y1+y2)) where
   (x0,y0)=getMid0 polygon
   (x1,y1)=getClosest polygon (x0,y0)
-  (x2,y2)=getAntipode (x1,y1)
+  (x2,y2)=getAntipode polygon (x1,y1)
 
 -- given a polygon edge and a point p0, get the point furthest on edge to p0
 getFurthest::Polygon->Point->Point
@@ -112,7 +112,7 @@ drawLine (x1,y1) (x2,y2) n
 drawArc :: Point->Point->Point->Point->Float->Int->[(Point,Float)]
 drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
 -- center of circle above center of the word, alphabet pointing inward, alphabets increase angle
-  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, -convertAngle angle))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
+  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle (angle-pi)))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
 -- center of circle below center of the word, alphabet pointing inward, alphabets decrease angle
   |y0>yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[1..n]
   where
@@ -121,6 +121,23 @@ drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
     deltaAngle = abs$ getAngle (leftX-xc,leftY-yc) (rightX-xc,rightY-yc)
     stepAngle = deltaAngle/(fromIntegral n+1)
     getPosition (x',y') r' angle = (x'+r'*cos angle,y'+r'*sin angle)
+
+{-
+--testDrawArc :: (Point,Point,Point,Point,Float,Int)->[(Point,Float)]
+testDrawArc ((xc,yc),(x0,y0),(x1,y1),(x2,y2),r,n)=(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
+-- center of circle above center of the word, alphabet pointing inward, alphabets increase angle
+--  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, -convertAngle angle))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
+-- center of circle below center of the word, alphabet pointing inward, alphabets decrease angle
+--  |y0>yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[1..n]
+  where
+    (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
+    startAngle = absoluteAngle (leftX-xc,leftY-yc)
+    deltaAngle = abs$ getAngle (leftX-xc,leftY-yc) (rightX-xc,rightY-yc)
+    stepAngle = deltaAngle/(fromIntegral n+1)
+    getPosition (x',y') r' angle = (x'+r'*cos angle,y'+r'*sin angle)
+testCircle::(Point,Point,Point,Point,Float,Int)
+testCircle=((0.0,0.0),(0.0,-2.0),(-1.879,-0.684),(1.532,-1.286),2.0,7)
+-}
 
 -- convertAngle receives angle decribing position of the alphabet convert it into
 -- the orientation of the outwardly pointing alphabet (in degree and clockwise from y-axis)
