@@ -33,6 +33,9 @@ getpcmap dir = do
   let fs = filter isProvHistory ufs
   buildPCMap dir fs
 
+getprovlocal :: FilePath -> IO LocalMap
+getprovlocal dir = getDirectoryContents dir >>= return . buildProvLocal
+
 provPath :: FilePath
 provPath = "resources/provinces/"
 
@@ -55,15 +58,16 @@ getcountries f cp dir = do
   let colormap = Map.fromList colors
   return $ Map.unions [Map.singleton (fst l) (uncurry Country l (fromMaybe [255,255,255] (Map.lookup (snd c) colormap))) | l <- local, c <- cf, fst l == fromIntegral (fst c) ]
 
-initData :: IO (PolygonMap, RangeMap, ProvCountryMap, CountryMap, (Word16,Word16))
+initData :: IO (PolygonMap, RangeMap, LocalMap, ProvCountryMap, CountryMap, (Word16,Word16))
 initData = do
   smap <- getsmap
   let (_,(i,j)) = bounds smap
   lumap <- getlumap
   drmap <- getrdmap
   pcmap <- getpcmap provPath
+  lcmap <- getprovlocal provPath
   ctmap <- getcountries localCPath countryPathConfig countryPath
   let pmap = buildLongPath smap lumap drmap
   let rmap = buildRange pmap
   let plgmap = getBezierControl . optimalPolygon <$> pmap
-  return (plgmap, rmap, pcmap, ctmap, (i,j))
+  return (plgmap, rmap, lcmap, pcmap, ctmap, (i,j))

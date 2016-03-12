@@ -1,9 +1,7 @@
 module Alphabet where
+import qualified Graphics.Gloss.Interface.IO.Game as GS
 import Data.List
-type Point = (Float,Float)
-type Vector = (Float,Float)
-type Polygon = [Point]
-type Triangle = Polygon
+import Triangulation
 
 
 -- auxiliary functions
@@ -28,16 +26,6 @@ stupidAngle :: Vector->Float
 stupidAngle vector = 0.5*pi - absoluteAngle vector
 -}
 
-getAngle :: Vector->Vector->Float
-getAngle (x1,y1) (x0,y0)
-  |u>=0 = theta
-  |u<0 && v>=0 = pi-theta
-  |u<0 && v<0 = -pi-theta
-  where
-    theta = asin (v/sqrt(u^2+v^2))
-    u = x1*x0+y1*y0
-    v = x0*y1-x1*y0
-
 -- intersectLine takes two lines (assume they do intersect) and outputs the intersection
 intersectLine :: (Float,Float,Float)->(Float,Float,Float)->Point
 intersectLine (a1,b1,c1) (a2,b2,c2) = ((-b2*c1+b1*c2)/(a1*b2-a2*b1),(a2*c1-a1*c2)/(a1*b2-a2*b1))
@@ -51,7 +39,7 @@ getMid polygon=(x/fromIntegral n,y/fromIntegral n) where
 
 -- given a polygon edge and a point p0, get the point furthest on edge to p0
 getFurthest::Polygon->Point->Point
-getFurthest [x] p0 = x
+getFurthest [x] _ = x
 getFurthest (x:xs) p0
     |dist x p0 < dist y p0 = y
     |otherwise = x
@@ -110,7 +98,7 @@ drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     startAngle = absoluteAngle (leftX-xc,leftY-yc)
     deltaAngle = abs$ getAngle (leftX-xc,leftY-yc) (rightX-xc,rightY-yc)
-    getPosition (xc,yc) r angle = (xc+r*cos angle,yc+r*sin angle)
+    getPosition (x',y') r' angle = (x'+r'*cos angle,y'+r'*sin angle)
 
 -- convertAngle receives angle decribing position of the alphabet convert it into
 -- the orientation of the outwardly pointing alphabet (in degree and clockwise from y-axis)
@@ -128,3 +116,10 @@ getAlphaOrient (xc,yc) (x,y) bool
   |bool = stupidAngle (x-xc,y-yc) *180/pi
   |otherwise = stupidAngle (xc-x,yc-y) *180/pi
 -}
+
+renderName :: Float -> [Point] -> String -> GS.Picture
+renderName zoom ps name = mconcat $ zipWith (renderchar zoom) chars positions where
+  l = length name
+  chars = map return name
+  positions = drawAlphabet ps l
+  renderchar z c p = GS.rotate (snd p) $ uncurry GS.translate (fst p) $ GS.scale z z $ GS.text c

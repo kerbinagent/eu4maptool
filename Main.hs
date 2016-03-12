@@ -5,12 +5,12 @@ import IOOper
 
 main :: IO ()
 main = do
-  (plgmap, rmap, pcmap, ctmap, (i,j)) <- initData
+  (plgmap, rmap, lcmap, pcmap, ctmap, (i,j)) <- initData
   GS.playIO
     (GS.InWindow "EUIV Map Editor" (1280,720) (0,0))
     GS.azure
     1
-    ((plgmap, rmap, pcmap, ctmap), (i,j), (1920,1080),constantinople, 4.5, False)
+    ((plgmap, rmap, lcmap, pcmap, ctmap), (i,j), (1920,1080),constantinople, 4.5, False)
     renderWorld
     handleEvent
     stepWorld

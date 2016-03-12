@@ -3,16 +3,17 @@ import MapType
 import HistoryType
 import ImageTracer
 import qualified Data.Map.Strict as Map
-import Data.Maybe (fromMaybe, fromJust)
+import Data.Maybe (fromMaybe)
 import Data.Word
 import Data.Monoid ((<>))
 import qualified Graphics.Gloss.Interface.IO.Game as GS
 import Graphics.Gloss.Data.Bitmap
+import qualified Alphabet as AL
 import qualified Triangulation as TRI
 
 -- the map of paths, the range of bmp , the size of the screen and the viewing position and scaling factor (base 1)
 -- bool is to control close / open of minimap
-type WorldType = ((PolygonMap, RangeMap, ProvCountryMap,CountryMap), (Word16, Word16), (Float, Float), Vertice, Float, Bool)
+type WorldType = ((PolygonMap, RangeMap, LocalMap, ProvCountryMap, CountryMap), (Word16, Word16), (Float, Float), Vertice, Float, Bool)
 
 rectIntersect :: (Ord a, Integral a) => ((a,a),(a,a)) -> ((a,a),(a,a)) -> Bool
 rectIntersect ((a,b),(c,d)) ((a',b'),(c',d')) = not $ a'>c || c'<a || b'>d || d'<b
@@ -79,8 +80,9 @@ emptyCountry = Country 0 "" [172,179,181]
 
 -- render the picture (pmap is the optimalPolygon map)
 renderWorld :: WorldType -> IO GS.Picture
-renderWorld ((pmap, rmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = do
+renderWorld ((pmap, rmap, lcmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = do
   let pvs = inRangeProv rmap $ calcViewFrame sw sh (fromIntegral vx) (fromIntegral vy) zoom
+      names = map (fromMaybe "undefined" . (`Map.lookup` lcmap)) pvs
       ctp = map (map (transPath (fromIntegral vx) (fromIntegral vy)) . fromMaybe [] . (`Map.lookup` pmap)) pvs
       drawcurve = mconcat . map GS.polygon . thickBezier (2/zoom) (4/zoom)
       drawprov = mconcat . map drawcurve
@@ -90,8 +92,10 @@ renderWorld ((pmap, rmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = 
       thickshape = mconcat $ map (map GS.polygon) thickbzs
       colors = map (\p -> getcolor $ fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap) pvs
       colorpart = mconcat $ zipWith coloredShape colors (map (mconcat . map GS.polygon . TRI.triangulate) allbzs)
+      namedraws = mconcat $ zipWith (AL.renderName (0.005*zoom)) allbzs names
+
   if zoom>4 then
-    return $ GS.scale zoom zoom $  colorpart <> mconcat thickshape
+    return $ GS.scale zoom zoom $  colorpart <> mconcat thickshape <> namedraws
   else
     return $ GS.scale zoom zoom $ mconcat thickerbzs <> colorpart
 renderWorld (_, _, _, _, _, True) = loadBMP "resources/miniterrain.bmp"
