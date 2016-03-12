@@ -64,6 +64,13 @@ getAntipode::Polygon->Point->Point
 getAntipode polygon p0 = polygon!!(index `mod` (length polygon)) where
   index = quot (length polygon) 2 + head (elemIndices p0 polygon)
 
+-- getOutline outputs (mid,furthest,antipode) of a polygon
+getOutline::Polygon->(Point,Point,Point)
+getOutline polygon=(mid,furthest,antipode) where
+  mid=getMid polygon
+  furthest=getFurthest polygon mid
+  antipode=getAntipode polygon furthest
+
 -- check if the center is approximately on line joining furthest point and its antipode
 isColinear :: Point->Point->Point->Bool
 isColinear (x0,y0) (x1,y1) (x2,y2) = if distance <=0.05*dist (x1,y1) (x2,y2) then True else False where
