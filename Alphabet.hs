@@ -68,7 +68,7 @@ getCenterRad p0@(x0,y0) p1@(x1,y1) p2@(x2,y2) = (center,rad) where
 -- the alphabet is rotated clockwisely from upright
 drawAlphabet :: Polygon->Int->[(Point,Float)]
 drawAlphabet polygon n
-  |isColinear mid furthest antipode = drawLine furthest mid n
+  |isColinear mid furthest antipode = drawLine furthest antipode n
   |otherwise = drawArc center mid furthest antipode rad n
   where
     mid = getMid polygon
@@ -79,13 +79,13 @@ drawAlphabet polygon n
 drawLine :: Point->Point->Int->[(Point,Float)]
 drawLine (x1,y1) (x2,y2) n
   |n<=0 = []
-  |otherwise = map ((\j->((leftX + stepX * (j - 0.5),leftY + stepY * (j - 0.5)),angle)).fromIntegral) [1..n]
+  |otherwise = map ((\j->((leftX + stepX * j,leftY + stepY * j),angle)).fromIntegral) [1..n]
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     len = dist (x1,y1) (x2,y2)
-    stepX = (rightX - leftX)/(fromIntegral n)
-    stepY = (rightY - leftY)/(fromIntegral n)
-    angle = asin $ (leftY - rightY)/len
+    stepX = (rightX - leftX)/(fromIntegral (n+1))
+    stepY = (rightY - leftY)/(fromIntegral (n+1))
+    angle = (180/pi)*(asin ((leftY - rightY)/len))
 
 
 drawArc :: Point->Point->Point->Point->Float->Int->[(Point,Float)]
