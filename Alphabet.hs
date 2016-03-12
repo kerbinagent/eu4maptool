@@ -91,13 +91,14 @@ drawLine (x1,y1) (x2,y2) n
 drawArc :: Point->Point->Point->Point->Float->Int->[(Point,Float)]
 drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
 -- center of circle above center of the word, alphabet pointing inward, alphabets increase angle
-  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, -convertAngle angle))).(map ((\j->(startAngle + deltaAngle * (j - 0.5))).fromIntegral))$[1..n]
+  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, -convertAngle angle))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
 -- center of circle below center of the word, alphabet pointing inward, alphabets decrease angle
-  |y0>yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - deltaAngle * (j - 0.5))).fromIntegral))$[1..n]
+  |y0>yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[1..n]
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     startAngle = absoluteAngle (leftX-xc,leftY-yc)
     deltaAngle = abs$ getAngle (leftX-xc,leftY-yc) (rightX-xc,rightY-yc)
+    stepAngle = deltaAngle/(n+1)
     getPosition (x',y') r' angle = (x'+r'*cos angle,y'+r'*sin angle)
 
 -- convertAngle receives angle decribing position of the alphabet convert it into
