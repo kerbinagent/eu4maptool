@@ -78,8 +78,8 @@ isColinear (x0,y0) (x1,y1) (x2,y2) = if distance <=0.05*dist (x1,y1) (x2,y2) the
 
 -- if the three points are not colinear, get the center of circle passing through them
 getCenterRad :: Point->Point->Point->(Point,Float)
-getCenterRad p0@(x0,y0) p1@(x1,y1) p2@(x2,y2) = (center,rad) where
-  rad=(dist p0 p1)*(dist p1 p2)*(dist p2 p0)*0.5/((x1-x0)*(y2-y0)-(x2-x0)*(y1-y0))
+getCenterRad p0@(x0,y0) p1@(x1,y1) p2@(x2,y2) = (center,radius) where
+  radius=abs$(dist p0 p1)*(dist p1 p2)*(dist p2 p0)*0.5/((x1-x0)*(y2-y0)-(x2-x0)*(y1-y0))
   center = intersectLine line1 line2
   line1 = (x1-x0,y1-y0,(-0.5)*(x1^2-x0^2+y1^2-y0^2))
   line2 = (x2-x0,y2-y0,(-0.5)*(x2^2-x0^2+y2^2-y0^2))
@@ -90,12 +90,12 @@ getCenterRad p0@(x0,y0) p1@(x1,y1) p2@(x2,y2) = (center,rad) where
 drawAlphabet :: Polygon->Int->[(Point,Float)]
 drawAlphabet polygon n
   |isColinear mid furthest antipode = drawLine furthest antipode n
-  |otherwise = drawArc center mid furthest antipode rad n
+  |otherwise = drawArc center mid furthest antipode radius n
   where
     mid = getMid polygon
     furthest = getFurthest polygon mid
     antipode = getAntipode polygon furthest
-    (center,rad) = getCenterRad mid furthest antipode
+    (center,radius) = getCenterRad mid furthest antipode
 
 drawLine :: Point->Point->Int->[(Point,Float)]
 drawLine (x1,y1) (x2,y2) n
@@ -124,7 +124,7 @@ drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
 
 {-
 --testDrawArc :: (Point,Point,Point,Point,Float,Int)->[(Point,Float)]
-testDrawArc ((xc,yc),(x0,y0),(x1,y1),(x2,y2),r,n)=(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
+testDrawArc ((xc,yc),(x0,y0),(x1,y1),(x2,y2),r,n)=(map (\angle->(getPosition (xc,yc) r angle))) $ (map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
 -- center of circle above center of the word, alphabet pointing inward, alphabets increase angle
 --  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, -convertAngle angle))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
 -- center of circle below center of the word, alphabet pointing inward, alphabets decrease angle
@@ -142,7 +142,7 @@ testCircle=((0.0,0.0),(0.0,-2.0),(-1.879,-0.684),(1.532,-1.286),2.0,7)
 -- convertAngle receives angle decribing position of the alphabet convert it into
 -- the orientation of the outwardly pointing alphabet (in degree and clockwise from y-axis)
 convertAngle :: Float->Float
-convertAngle rad = (180/pi)*(0.5*pi-rad)
+convertAngle radian = (180/pi)*(0.5*pi-radian)
 
 {-
 -- getAlphaOrient takes center of circle and a point on circumference
