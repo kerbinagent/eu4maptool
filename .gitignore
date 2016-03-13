@@ -20,3 +20,5 @@ vanilla
 *~
 resources/provinces
 resources/countries
+resources/*.yml
+resources/*.txt
