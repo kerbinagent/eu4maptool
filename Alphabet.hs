@@ -112,26 +112,26 @@ drawAlphabet polygon n
 drawLine :: Point->Point->Int->[(Point,Float)]
 drawLine (x1,y1) (x2,y2) n
   |n<=0 = []
-  |otherwise = map ((\j->((leftX + stepX * j,leftY + stepY * j),angle)).fromIntegral) [1..n]
+  |otherwise = map ((\j->((leftX + stepX * j,leftY + stepY * j),angle)).fromIntegral) [2..n+1]
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     len = dist (x1,y1) (x2,y2)
-    stepX = (rightX - leftX)/(fromIntegral (n+2))
-    stepY = (rightY - leftY)/(fromIntegral (n+2))
+    stepX = (rightX - leftX)/(fromIntegral (n+3))
+    stepY = (rightY - leftY)/(fromIntegral (n+3))
     angle = (180/pi)*(asin ((leftY - rightY)/len))
 
 
 drawArc :: Point->Point->Point->Point->Float->Int->[(Point,Float)]
 drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
 -- center of circle above center of the word, alphabet pointing inward, alphabets increase angle
-  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle (angle-pi)))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
+  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle (angle-pi)))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[2..n+1]
 -- center of circle below center of the word, alphabet pointing inward, alphabets decrease angle
-  |y0>yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[1..n]
+  |y0>yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[2..n+1]
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     startAngle = absoluteAngle (leftX-xc,leftY-yc)
     deltaAngle = abs$ getAngle (leftX-xc,leftY-yc) (rightX-xc,rightY-yc)
-    stepAngle = deltaAngle/(fromIntegral n+2)
+    stepAngle = deltaAngle/(fromIntegral n+3)
     getPosition (x',y') r' angle = (x'+r'*cos angle,y'+r'*sin angle)
 
 {-
