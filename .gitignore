@@ -22,3 +22,7 @@ resources/provinces
 resources/countries
 resources/*.yml
 resources/*.txt
+
+resources/00_countries.txt
+
+*.yml
