@@ -3,7 +3,7 @@ import System.Directory
 import Data.Maybe (fromMaybe)
 import Data.Array
 import Data.Word
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Codec.Picture
 import MapType
 import HistoryType
@@ -13,7 +13,7 @@ import ImageTracer
 
 getsmap :: IO ShapeMap
 getsmap = do
-  g <- readFile "resources/definition.csv"
+  g <- readFile "resources/altdef.csv"
   let defMap = parseRDef g
   Right (ImageRGB8 bmp) <- readBitmap "resources/provinces.bmp"
   s <- readFile "resources/sealist"
@@ -32,6 +32,9 @@ getpcmap dir = do
   ufs <- getDirectoryContents dir
   let fs = filter isProvHistory ufs
   buildPCMap dir fs
+
+getprovlocal :: FilePath -> IO LocalMap
+getprovlocal dir = getDirectoryContents dir >>= return . buildProvLocal
 
 provPath :: FilePath
 provPath = "resources/provinces/"
@@ -55,15 +58,16 @@ getcountries f cp dir = do
   let colormap = Map.fromList colors
   return $ Map.unions [Map.singleton (fst l) (uncurry Country l (fromMaybe [255,255,255] (Map.lookup (snd c) colormap))) | l <- local, c <- cf, fst l == fromIntegral (fst c) ]
 
-initData :: IO (PolygonMap, RangeMap, ProvCountryMap, CountryMap, (Word16,Word16))
+initData :: IO (PolygonMap, RangeMap, LocalMap, ProvCountryMap, CountryMap, (Word16,Word16))
 initData = do
   smap <- getsmap
   let (_,(i,j)) = bounds smap
   lumap <- getlumap
   drmap <- getrdmap
   pcmap <- getpcmap provPath
+  lcmap <- getprovlocal provPath
   ctmap <- getcountries localCPath countryPathConfig countryPath
   let pmap = buildLongPath smap lumap drmap
   let rmap = buildRange pmap
-  let plgmap = optimalPolygon <$> pmap
-  return (plgmap, rmap, pcmap, ctmap, (i,j))
+  let plgmap = getBezierControl . optimalPolygon <$> pmap
+  return (plgmap, rmap, lcmap, pcmap, ctmap, (i,j))

@@ -3,7 +3,7 @@ module Parser where
 import MapType
 import HistoryType
 import Data.List.Split (splitOn)
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe)
 import Data.Word
 import Data.Char

@@ -7,7 +7,7 @@ import Control.Exception (evaluate)
 import Control.Monad.State
 import MapType
 import Codec.Picture
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe)
 import Data.Word
 import Data.Array

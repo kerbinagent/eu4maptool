@@ -2,16 +2,18 @@ module Drawing where
 import MapType
 import HistoryType
 import ImageTracer
-import qualified Data.Map as Map
-import Data.Maybe (fromMaybe, fromJust)
+import qualified Data.Map.Strict as Map
+import Data.Maybe (fromMaybe)
 import Data.Word
 import Data.Monoid ((<>))
 import qualified Graphics.Gloss.Interface.IO.Game as GS
 import Graphics.Gloss.Data.Bitmap
+import qualified Alphabet as AL
+import qualified Triangulation as TRI
 
 -- the map of paths, the range of bmp , the size of the screen and the viewing position and scaling factor (base 1)
 -- bool is to control close / open of minimap
-type WorldType = ((PolygonMap, RangeMap, ProvCountryMap,CountryMap), (Word16, Word16), (Float, Float), Vertice, Float, Bool)
+type WorldType = ((PolygonMap, RangeMap, LocalMap, ProvCountryMap, CountryMap), (Word16, Word16), (Float, Float), Vertice, Float, Bool)
 
 rectIntersect :: (Ord a, Integral a) => ((a,a),(a,a)) -> ((a,a),(a,a)) -> Bool
 rectIntersect ((a,b),(c,d)) ((a',b'),(c',d')) = not $ a'>c || c'<a || b'>d || d'<b
@@ -22,8 +24,8 @@ inRangeProv rmap r = [fst x | x <- Map.toList rmap, snd x `rectIntersect` r ]
 
 -- transform list of nodes into another coordinate system given its zero point
 -- intended to transform result coming from optimalPolygon in ImageTracer
-transPath :: Int -> Int -> [Vertice] -> [(Int,Int)]
-transPath x y = map (\(a,b) -> (fromIntegral a - x, y - fromIntegral b))
+transPath :: Float -> Float -> [(Float, Float)] -> [(Float,Float)]
+transPath x y = map (\(a,b) -> (a - x, y - b))
 
 -- perhaps a good starting position
 constantinople :: Vertice
@@ -61,6 +63,7 @@ handleEvent (GS.EventKey (GS.SpecialKey GS.KeyDown) GS.Up _ _) (ms, bsize , scr,
 handleEvent (GS.EventKey (GS.SpecialKey GS.KeyLeft) GS.Up _ _) (ms, bsize , scr, vp, zoom, False) = return (ms, bsize, scr, moveView vp bsize scr zoom (100/zoom) Lf, zoom, False)
 handleEvent (GS.EventKey (GS.SpecialKey GS.KeyRight) GS.Up _ _) (ms, bsize , scr, vp, zoom, False) = return (ms, bsize, scr, moveView vp bsize scr zoom (100/zoom) Rg, zoom, False)
 handleEvent (GS.EventKey (GS.Char 'g') GS.Up _ _) (ms,b,s,v,z,m) = return (ms,b,s,v,z,not m)
+handleEvent (GS.EventKey (GS.Char 'h') GS.Up _ _) (ms,b,s,_,z,False) = return (ms,b,s,constantinople,z,False)
 handleEvent (GS.EventKey (GS.Char '=') GS.Up _ _) (ms,b,s,v,z,mini) = return (ms,b,s,v,z*1.25,mini)
 handleEvent (GS.EventKey (GS.Char '-') GS.Up _ _) (ms,b,s,v,z,mini) = return (ms,b,s,v,z*0.8,mini)
 handleEvent (GS.EventKey (GS.MouseButton GS.LeftButton) GS.Up _ mp) (ms,b,s,_,z, True) = return (ms,b,s, goFromMiniMap s b z mp, z, False)
@@ -69,21 +72,32 @@ handleEvent _ world = return world
 coloredPolygon :: ([Word8], GS.Path) -> GS.Picture
 coloredPolygon (a,b) = GS.color (GS.makeColorI (fromIntegral (head a)) (fromIntegral (a !! 1)) (fromIntegral (last a)) 255) $ GS.polygon b
 
+coloredShape :: [Word8] -> GS.Picture -> GS.Picture
+coloredShape cs p = GS.color (GS.makeColorI (fromIntegral (head cs)) (fromIntegral (cs !! 1)) (fromIntegral (last cs)) 255) p
+
 emptyCountry :: Country
 emptyCountry = Country 0 "" [172,179,181]
 
 -- render the picture (pmap is the optimalPolygon map)
 renderWorld :: WorldType -> IO GS.Picture
-renderWorld ((pmap, rmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = do
+renderWorld ((pmap, rmap, lcmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = do
   let pvs = inRangeProv rmap $ calcViewFrame sw sh (fromIntegral vx) (fromIntegral vy) zoom
-      ctp = map (getBezierControl . transPath (fromIntegral vx) (fromIntegral vy) . fromMaybe [] . (`Map.lookup` pmap)) pvs
-      allbzs = map (concatMap (drawBezier (1/zoom))) ctp
-      thickbzs = map (concatMap (thickBezier (1/zoom) 1.1)) ctp
+      names = map (fromMaybe "undefined" . (`Map.lookup` lcmap)) pvs
+      ctp = map (map (transPath (fromIntegral vx) (fromIntegral vy)) . fromMaybe [] . (`Map.lookup` pmap)) pvs
+      drawcurve = mconcat . map GS.polygon . thickBezier (2/zoom) (4/zoom)
+      drawprov = mconcat . map drawcurve
+      allbzs = map (concatMap (init . drawBezier (4/zoom))) ctp
+      thickbzs = map (concatMap (thickBezier (2/zoom) 1.1)) ctp
+      thickerbzs = map (\(c,s) ->  coloredShape c $ drawprov s)  (zip colors ctp)
+      thickshape = mconcat $ map (map GS.polygon) thickbzs
       colors = map (\p -> getcolor $ fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap) pvs
+      colorpart = mconcat $ zipWith coloredShape colors (map (mconcat . map GS.polygon . TRI.triangulate) allbzs)
+      namedraws = mconcat $ zipWith (AL.renderName (0.005*zoom)) allbzs names
+
   if zoom>4 then
-    return $ GS.scale zoom zoom . mconcat . mconcat $ map (map GS.polygon) thickbzs
+    return $ GS.scale zoom zoom $  colorpart <> mconcat thickshape <> namedraws
   else
-    return $ GS.scale zoom zoom . mconcat $ map coloredPolygon (zip colors allbzs)
+    return $ GS.scale zoom zoom $ mconcat thickerbzs <> colorpart
 renderWorld (_, _, _, _, _, True) = loadBMP "resources/miniterrain.bmp"
 
 stepWorld :: Float -> WorldType -> IO WorldType

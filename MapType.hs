@@ -1,7 +1,7 @@
 -- type definitions and handy small functions
 module MapType where
 import Data.Word
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import Data.Array
 type ColorRGB = (Word8,Word8,Word8)
 type PixelPos = (Word16,Word16)
@@ -17,7 +17,7 @@ type ReverseDefMap = Map.Map ColorRGB Word16
 type ShapeMap = Array (Word16,Word16) Word16
 type RangeMap = Map.Map ProvID ((Word16, Word16), (Word16, Word16))
 type ClosureMap = Map.Map ProvID Path
-type PolygonMap = Map.Map Word16 [Vertice]
+type PolygonMap = Map.Map Word16 [[(Float, Float)]]
 type AllProvince = Map.Map Word16 Province
 data Direction = Up | Dn | Lf | Rg
   deriving (Show,Eq)
