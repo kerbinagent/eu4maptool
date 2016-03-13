@@ -116,8 +116,8 @@ drawLine (x1,y1) (x2,y2) n
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     len = dist (x1,y1) (x2,y2)
-    stepX = (rightX - leftX)/(fromIntegral (n+1))
-    stepY = (rightY - leftY)/(fromIntegral (n+1))
+    stepX = (rightX - leftX)/(fromIntegral (n+2))
+    stepY = (rightY - leftY)/(fromIntegral (n+2))
     angle = (180/pi)*(asin ((leftY - rightY)/len))
 
 
@@ -131,7 +131,7 @@ drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     startAngle = absoluteAngle (leftX-xc,leftY-yc)
     deltaAngle = abs$ getAngle (leftX-xc,leftY-yc) (rightX-xc,rightY-yc)
-    stepAngle = deltaAngle/(fromIntegral n+1)
+    stepAngle = deltaAngle/(fromIntegral n+2)
     getPosition (x',y') r' angle = (x'+r'*cos angle,y'+r'*sin angle)
 
 {-
