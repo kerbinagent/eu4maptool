@@ -161,4 +161,4 @@ renderName zoom ps name = mconcat $ zipWith (renderchar zoom) chars positions wh
   l = length name
   chars = map return name
   positions = drawAlphabet ps l
-  renderchar z c p = GS.rotate (snd p) $ uncurry GS.translate (fst p) $ GS.scale z z $ GS.text c
+  renderchar z c p = uncurry GS.translate (fst p) $ GS.scale z z $ GS.rotate (snd p) $ GS.text c
