@@ -36,12 +36,20 @@ getMid0 polygon=(x/fromIntegral n,y/fromIntegral n) where
   x=sum $ map fst polygon
   y=sum $ map snd polygon
   n=length polygon
-
+{-
 getMid::Polygon->Point
 getMid polygon=(0.5*(x1+x2),0.5*(y1+y2)) where
   (x0,y0)=getMid0 polygon
   (x1,y1)=getClosest polygon (x0,y0)
   (x2,y2)=getAntipode polygon (x1,y1)
+-}
+getMid::Polygon->Point
+getMid polygon=((1/3)*(x1+x2+x3),(1/3)*(y1+y2+y3)) where
+  (x0,y0)=getMid0 polygon
+  (x1,y1)=getClosest polygon (x0,y0)
+  (x2,y2)=getAntipode3 polygon (x1,y1)
+  (x3,y3)=getAntipode3 polygon (x2,y2)
+
 
 -- given a polygon edge and a point p0, get the point furthest on edge to p0
 getFurthest::Polygon->Point->Point
@@ -63,6 +71,10 @@ getClosest (x:xs) p0
 getAntipode::Polygon->Point->Point
 getAntipode polygon p0 = polygon!!(index `mod` (length polygon)) where
   index = quot (length polygon) 2 + head (elemIndices p0 polygon)
+
+getAntipode3::Polygon->Point->Point
+getAntipode3 polygon p0 = polygon!!(index `mod` (length polygon)) where
+  index = quot (length polygon) 3 + head (elemIndices p0 polygon)
 
 -- getOutline outputs (mid,furthest,antipode) of a polygon
 getOutline::Polygon->(Point,Point,Point)
