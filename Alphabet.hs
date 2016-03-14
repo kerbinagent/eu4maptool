@@ -18,7 +18,7 @@ absoluteAngle (u,v)
   |u<0&&v>=0 = pi - asin (v/r)
   |u<0&&v<0 = -pi - asin (v/r)
   where r=sqrt$u^2+v^2
-
+    
 {-
 -- stupidAngle takes a vector and output the angle this vector is rotated clockwisely from y-axis, in radian
 -- the output is within [-0.5pi,1.5pi)
