@@ -26,3 +26,11 @@ resources/*.txt
 resources/00_countries.txt
 
 *.yml
+
+Main
+
+resources/00_countries.txt
+
+resources/countries_l_english.yml
+
+resources/prov_names_l_english.yml
