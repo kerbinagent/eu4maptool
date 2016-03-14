@@ -18,7 +18,7 @@ absoluteAngle (u,v)
   |u<0&&v>=0 = pi - asin (v/r)
   |u<0&&v<0 = -pi - asin (v/r)
   where r=sqrt$u^2+v^2
-    
+
 {-
 -- stupidAngle takes a vector and output the angle this vector is rotated clockwisely from y-axis, in radian
 -- the output is within [-0.5pi,1.5pi)
@@ -99,7 +99,7 @@ getCenterRad p0@(x0,y0) p1@(x1,y1) p2@(x2,y2) = (center,radius) where
 -- takes a polygon and number of alphabets and output list of
 -- (position,angle), where angle represent the angle(in degree)
 -- the alphabet is rotated clockwisely from upright
-drawAlphabet :: Polygon->Int->[(Point,Float)]
+drawAlphabet :: Polygon->Int->([(Point,Float)],Float)
 drawAlphabet polygon n
   |isColinear mid furthest antipode = drawLine furthest antipode n
   |otherwise = drawArc center mid furthest antipode radius n
@@ -109,10 +109,10 @@ drawAlphabet polygon n
     antipode = getAntipode polygon furthest
     (center,radius) = getCenterRad mid furthest antipode
 
-drawLine :: Point->Point->Int->[(Point,Float)]
+drawLine :: Point->Point->Int->([(Point,Float)],Float)
 drawLine (x1,y1) (x2,y2) n
-  |n<=0 = []
-  |otherwise = map ((\j->((leftX + stepX * j,leftY + stepY * j),angle)).fromIntegral) [2..n+1]
+  |n<=0 = ([],0)
+  |otherwise = (map ((\j->((leftX + stepX * j,leftY + stepY * j),angle)).fromIntegral) [2..n+1], len/fromIntegral (n+3))
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     len = dist (x1,y1) (x2,y2)
@@ -121,12 +121,12 @@ drawLine (x1,y1) (x2,y2) n
     angle = (180/pi)*(asin ((leftY - rightY)/len))
 
 
-drawArc :: Point->Point->Point->Point->Float->Int->[(Point,Float)]
+drawArc :: Point->Point->Point->Point->Float->Int->([(Point,Float)],Float)
 drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
 -- center of circle above center of the word, alphabet pointing inward, alphabets increase angle
-  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle (angle-pi)))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[2..n+1]
+  |y0<=yc = ((map (\angle->(getPosition (xc,yc) r angle, convertAngle (angle-pi)))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[2..n+1],stepAngle*r)
 -- center of circle below center of the word, alphabet pointing inward, alphabets decrease angle
-  |y0>yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[2..n+1]
+  |y0>yc = ((map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[2..n+1], stepAngle*r)
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     startAngle = absoluteAngle (leftX-xc,leftY-yc)
