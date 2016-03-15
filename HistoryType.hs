@@ -18,6 +18,12 @@ getcolor::[Word8]
 }
   deriving(Show)
 
+instance Eq Country where
+  a == b = countryID a == countryID b
+
+instance Ord Country where
+  compare a b = compare (countryID a) (countryID b)
+
 data ProvinceHistory = PHistory {
 provinceID::Word16,
 baseManpower :: Word8,
