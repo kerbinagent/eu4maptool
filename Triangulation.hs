@@ -5,6 +5,7 @@
 -- our purpose
 module Triangulation where
 import Data.List
+import ImageTracer (two)
 type Point = (Float,Float)
 type Vector = (Float,Float)
 type Polygon = [Point]
@@ -48,6 +49,7 @@ triangulate input = if length input <= 3 then [input] else if windingNumber inpu
   triangle = fst (getEar input)
   polygon = snd (getEar input)
 -----------------------------------------
+subtrv :: Point -> Point -> Point
 subtrv (x1,y1) (x0,y0) = (x1-x0,y1-y0)
 getVectors :: Polygon->[Vector]
 getVectors polygon = zipWith subtrv (listRot polygon) polygon
@@ -58,7 +60,7 @@ getAngle (x1,y1) (x0,y0)
   |u<0 && v>=0 = pi-theta
   |otherwise = -pi-theta
   where
-    theta = asin (v/sqrt(u^2+v^2))
+    theta = asin (v/sqrt(u^two+v^two))
     u = x1*x0+y1*y0
     v = x0*y1-x1*y0
 
