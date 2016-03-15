@@ -54,8 +54,9 @@ moveView v (bw, bh) (sw, sh) zoom len drn = (round x0, round y0) where
   (x0,y0) = (min (max minX vx0) maxX, min (max minY vy0) maxY)
 
 -- minimap mouse vertice capture: given screen size, zoom and clicked position, return a corrected viewpoint
+-- corrected viewpoint not finished
 goFromMiniMap :: (Float, Float) -> (Word16, Word16) -> Float -> (Float, Float) -> (Word16, Word16)
-goFromMiniMap (sw,sh) (bw, bh) zoom (mx,my) = (round x, round y) where
+goFromMiniMap (_,_) (bw, bh) _ (mx,my) = (round x, round y) where
   (x,y) = (fromIntegral bw/2 + mx*8, fromIntegral bh/2 - my*8)
 
 

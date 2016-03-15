@@ -2,11 +2,12 @@ module Alphabet where
 import qualified Graphics.Gloss.Interface.IO.Game as GS
 import Data.List
 import Triangulation
+import ImageTracer (two)
 
 
 -- auxiliary functions
 dist::Point->Point->Float
-dist (x0,y0) (x1,y1) = sqrt$ (x0-x1)^2+(y0-y1)^2
+dist (x0,y0) (x1,y1) = sqrt$ (x0-x1)^two+(y0-y1)^two
 
 -- absoluteAngle takes a vector and output an angle in (-pi,pi]
 -- the output angle is the anticlockwise angle the vector is rotated from x-axis
@@ -17,7 +18,7 @@ absoluteAngle (u,v)
   |u>=0 = asin (v/r)
   |u<0&&v>=0 = pi - asin (v/r)
   |otherwise = -pi - asin (v/r)
-  where r=sqrt$u^2+v^2
+  where r=sqrt$u^two+v^two
 
 {-
 -- stupidAngle takes a vector and output the angle this vector is rotated clockwisely from y-axis, in radian
@@ -86,15 +87,15 @@ getOutline polygon=(mid,furthest,antipode) where
 -- check if the center is approximately on line joining furthest point and its antipode
 isColinear :: Point->Point->Point->Bool
 isColinear (x0,y0) (x1,y1) (x2,y2) = if distance <=0.05*dist (x1,y1) (x2,y2) then True else False where
-  distance = abs$((y2-y1)*x0-(x2-x1)*y0+x2*y1-y2*x1)/(sqrt((y2-y1)^2+(x2-x1)^2))
+  distance = abs$((y2-y1)*x0-(x2-x1)*y0+x2*y1-y2*x1)/(sqrt((y2-y1)^two+(x2-x1)^two))
 
 -- if the three points are not colinear, get the center of circle passing through them
 getCenterRad :: Point->Point->Point->(Point,Float)
 getCenterRad p0@(x0,y0) p1@(x1,y1) p2@(x2,y2) = (center,radius) where
   radius=abs$(dist p0 p1)*(dist p1 p2)*(dist p2 p0)*0.5/((x1-x0)*(y2-y0)-(x2-x0)*(y1-y0))
   center = intersectLine line1 line2
-  line1 = (x1-x0,y1-y0,(-0.5)*(x1^2-x0^2+y1^2-y0^2))
-  line2 = (x2-x0,y2-y0,(-0.5)*(x2^2-x0^2+y2^2-y0^2))
+  line1 = (x1-x0,y1-y0,(-0.5)*(x1^two-x0^two+y1^two-y0^two))
+  line2 = (x2-x0,y2-y0,(-0.5)*(x2^two-x0^two+y2^two-y0^two))
 
 -- takes a polygon and number of alphabets and output list of
 -- (position,angle), where angle represent the angle(in degree)
