@@ -56,7 +56,7 @@ getAngle :: Vector->Vector->Float
 getAngle (x1,y1) (x0,y0)
   |u>=0 = theta
   |u<0 && v>=0 = pi-theta
-  |u<0 && v<0 = -pi-theta
+  |otherwise = -pi-theta
   where
     theta = asin (v/sqrt(u^2+v^2))
     u = x1*x0+y1*y0

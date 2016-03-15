@@ -6,10 +6,12 @@ import qualified Data.Map.Strict as Map
 import Data.Maybe (fromMaybe)
 import Data.Word
 import Data.Monoid ((<>))
+import Data.List (sort)
 import qualified Graphics.Gloss.Interface.IO.Game as GS
 import Graphics.Gloss.Data.Bitmap
 import qualified Alphabet as AL
 import qualified Triangulation as TRI
+import ConvexHull
 
 -- the map of paths, the range of bmp , the size of the screen and the viewing position and scaling factor (base 1)
 -- bool is to control close / open of minimap
@@ -78,6 +80,15 @@ coloredShape cs p = GS.color (GS.makeColorI (fromIntegral (head cs)) (fromIntegr
 emptyCountry :: Country
 emptyCountry = Country 0 "" [172,179,181]
 
+--assuming sorted
+combineTuple :: (Eq a, Eq b) => [(a,[b])] -> [(a,[b])]
+combineTuple [] = []
+combineTuple [x] = [x]
+combineTuple (x:xs) = if fst x == fst (head xs) then combineTuple (both:tail xs) else x:combineTuple xs where
+  both = (fst x, snd x ++ snd (head xs))
+combineT :: (Ord a, Ord b) => [(a,b)] -> [(a,[b])]
+combineT =  combineTuple . map (\(a,b) -> (a,[b])) . sort
+
 -- render the picture (pmap is the optimalPolygon map)
 renderWorld :: WorldType -> IO GS.Picture
 renderWorld ((pmap, rmap, lcmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, False) = do
@@ -87,16 +98,20 @@ renderWorld ((pmap, rmap, lcmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, Fa
       drawcurve = mconcat . map GS.polygon . thickBezier (2/zoom) (4/zoom)
       drawprov = mconcat . map drawcurve
       allbzs = map (concatMap (init . drawBezier (4/zoom))) ctp
+      allbzs' = zip pvs allbzs
       thickbzs = map (concatMap (thickBezier (2/zoom) 1.1)) ctp
       thickerbzs = map (\(c,s) ->  coloredShape c $ drawprov s)  (zip colors ctp)
       thickshape = mconcat $ map (map GS.polygon) thickbzs
-      colors = map (\p -> getcolor $ fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap) pvs
+      countries = map (\(p,pts) -> (fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap, pts)) allbzs'
+      ctpvs = combineT countries
+      colors = map (getcolor . fst) countries
       colorpart = mconcat $ zipWith coloredShape colors (map (mconcat . map GS.polygon . TRI.triangulate) allbzs)
       namedraws = mconcat $ zipWith (AL.renderName zoom) allbzs names
+      countrynames = map (\(c,ps) -> AL.renderName zoom (quickHull (concat ps)) (countryname c) ) ctpvs
   if zoom>4 then
     return $ GS.scale zoom zoom $  colorpart <> mconcat thickshape <> namedraws
   else
-    return $ GS.scale zoom zoom $ mconcat thickerbzs <> colorpart
+    return $ GS.scale zoom zoom $ mconcat thickerbzs <> colorpart <> mconcat countrynames
 renderWorld (_, _, _, _, _, True) = loadBMP "resources/miniterrain.bmp"
 
 stepWorld :: Float -> WorldType -> IO WorldType

@@ -16,7 +16,7 @@ absoluteAngle (u,v)
   |(u,v)==(0,0) = 0
   |u>=0 = asin (v/r)
   |u<0&&v>=0 = pi - asin (v/r)
-  |u<0&&v<0 = -pi - asin (v/r)
+  |otherwise = -pi - asin (v/r)
   where r=sqrt$u^2+v^2
 
 {-
@@ -122,11 +122,11 @@ drawLine (x1,y1) (x2,y2) n
 
 
 drawArc :: Point->Point->Point->Point->Float->Int->([(Point,Float)],Float)
-drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
+drawArc (xc,yc) (_,y0) (x1,y1) (x2,y2) r n
 -- center of circle above center of the word, alphabet pointing inward, alphabets increase angle
   |y0<=yc = ((map (\angle->(getPosition (xc,yc) r angle, convertAngle (angle-pi)))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[2..n+1],stepAngle*r)
 -- center of circle below center of the word, alphabet pointing inward, alphabets decrease angle
-  |y0>yc = ((map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[2..n+1], stepAngle*r)
+  |otherwise = ((map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[2..n+1], stepAngle*r)
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     startAngle = absoluteAngle (leftX-xc,leftY-yc)
