@@ -172,5 +172,5 @@ renderName :: Float -> [Point] -> String -> GS.Picture
 renderName zoom ps name = mconcat $ zipWith (renderchar zoom) chars positions where
   l = length name
   chars = map return name
-  positions = drawAlphabet ps l
-  renderchar z c p = uncurry GS.translate (fst p) $ GS.scale z z $ GS.rotate (snd p) $ GS.text c
+  (positions, zz) = drawAlphabet ps l
+  renderchar z c p = uncurry GS.translate (fst p) $ GS.scale (z*0.001*zz) (z*0.001*zz) $ GS.rotate (snd p) $ GS.text c

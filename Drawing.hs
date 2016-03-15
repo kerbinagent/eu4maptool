@@ -92,8 +92,7 @@ renderWorld ((pmap, rmap, lcmap, pcmap, ctmap), _ , (sw, sh), (vx, vy), zoom, Fa
       thickshape = mconcat $ map (map GS.polygon) thickbzs
       colors = map (\p -> getcolor $ fromMaybe emptyCountry $ Map.lookup (fromMaybe 0 (Map.lookup p pcmap)) ctmap) pvs
       colorpart = mconcat $ zipWith coloredShape colors (map (mconcat . map GS.polygon . TRI.triangulate) allbzs)
-      namedraws = mconcat $ zipWith (AL.renderName (0.005*zoom)) allbzs names
-
+      namedraws = mconcat $ zipWith (AL.renderName zoom) allbzs names
   if zoom>4 then
     return $ GS.scale zoom zoom $  colorpart <> mconcat thickshape <> namedraws
   else
