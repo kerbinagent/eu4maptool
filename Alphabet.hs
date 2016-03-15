@@ -36,12 +36,20 @@ getMid0 polygon=(x/fromIntegral n,y/fromIntegral n) where
   x=sum $ map fst polygon
   y=sum $ map snd polygon
   n=length polygon
-
+{-
 getMid::Polygon->Point
 getMid polygon=(0.5*(x1+x2),0.5*(y1+y2)) where
   (x0,y0)=getMid0 polygon
   (x1,y1)=getClosest polygon (x0,y0)
   (x2,y2)=getAntipode polygon (x1,y1)
+-}
+getMid::Polygon->Point
+getMid polygon=((1/3)*(x1+x2+x3),(1/3)*(y1+y2+y3)) where
+  (x0,y0)=getMid0 polygon
+  (x1,y1)=getClosest polygon (x0,y0)
+  (x2,y2)=getAntipode3 polygon (x1,y1)
+  (x3,y3)=getAntipode3 polygon (x2,y2)
+
 
 -- given a polygon edge and a point p0, get the point furthest on edge to p0
 getFurthest::Polygon->Point->Point
@@ -63,6 +71,10 @@ getClosest (x:xs) p0
 getAntipode::Polygon->Point->Point
 getAntipode polygon p0 = polygon!!(index `mod` (length polygon)) where
   index = quot (length polygon) 2 + head (elemIndices p0 polygon)
+
+getAntipode3::Polygon->Point->Point
+getAntipode3 polygon p0 = polygon!!(index `mod` (length polygon)) where
+  index = quot (length polygon) 3 + head (elemIndices p0 polygon)
 
 -- getOutline outputs (mid,furthest,antipode) of a polygon
 getOutline::Polygon->(Point,Point,Point)
@@ -87,7 +99,7 @@ getCenterRad p0@(x0,y0) p1@(x1,y1) p2@(x2,y2) = (center,radius) where
 -- takes a polygon and number of alphabets and output list of
 -- (position,angle), where angle represent the angle(in degree)
 -- the alphabet is rotated clockwisely from upright
-drawAlphabet :: Polygon->Int->[(Point,Float)]
+drawAlphabet :: Polygon->Int->([(Point,Float)],Float)
 drawAlphabet polygon n
   |isColinear mid furthest antipode = drawLine furthest antipode n
   |otherwise = drawArc center mid furthest antipode radius n
@@ -97,29 +109,29 @@ drawAlphabet polygon n
     antipode = getAntipode polygon furthest
     (center,radius) = getCenterRad mid furthest antipode
 
-drawLine :: Point->Point->Int->[(Point,Float)]
+drawLine :: Point->Point->Int->([(Point,Float)],Float)
 drawLine (x1,y1) (x2,y2) n
-  |n<=0 = []
-  |otherwise = map ((\j->((leftX + stepX * j,leftY + stepY * j),angle)).fromIntegral) [1..n]
+  |n<=0 = ([],0)
+  |otherwise = (map ((\j->((leftX + stepX * j,leftY + stepY * j),angle)).fromIntegral) [2..n+1], len/fromIntegral (n+3))
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     len = dist (x1,y1) (x2,y2)
-    stepX = (rightX - leftX)/(fromIntegral (n+1))
-    stepY = (rightY - leftY)/(fromIntegral (n+1))
+    stepX = (rightX - leftX)/(fromIntegral (n+3))
+    stepY = (rightY - leftY)/(fromIntegral (n+3))
     angle = (180/pi)*(asin ((leftY - rightY)/len))
 
 
-drawArc :: Point->Point->Point->Point->Float->Int->[(Point,Float)]
+drawArc :: Point->Point->Point->Point->Float->Int->([(Point,Float)],Float)
 drawArc (xc,yc) (x0,y0) (x1,y1) (x2,y2) r n
 -- center of circle above center of the word, alphabet pointing inward, alphabets increase angle
-  |y0<=yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle (angle-pi)))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[1..n]
+  |y0<=yc = ((map (\angle->(getPosition (xc,yc) r angle, convertAngle (angle-pi)))).(map ((\j->(startAngle + stepAngle * j)).fromIntegral))$[2..n+1],stepAngle*r)
 -- center of circle below center of the word, alphabet pointing inward, alphabets decrease angle
-  |y0>yc = (map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[1..n]
+  |y0>yc = ((map (\angle->(getPosition (xc,yc) r angle, convertAngle angle))).(map ((\j->(startAngle - stepAngle * j)).fromIntegral))$[2..n+1], stepAngle*r)
   where
     (leftX,leftY,rightX,rightY) = if x1<x2 then (x1,y1,x2,y2) else (x2,y2,x1,y1)
     startAngle = absoluteAngle (leftX-xc,leftY-yc)
     deltaAngle = abs$ getAngle (leftX-xc,leftY-yc) (rightX-xc,rightY-yc)
-    stepAngle = deltaAngle/(fromIntegral n+1)
+    stepAngle = deltaAngle/(fromIntegral n+3)
     getPosition (x',y') r' angle = (x'+r'*cos angle,y'+r'*sin angle)
 
 {-
@@ -160,5 +172,5 @@ renderName :: Float -> [Point] -> String -> GS.Picture
 renderName zoom ps name = mconcat $ zipWith (renderchar zoom) chars positions where
   l = length name
   chars = map return name
-  positions = drawAlphabet ps l
-  renderchar z c p = uncurry GS.translate (fst p) $ GS.scale z z $ GS.rotate (snd p) $ GS.text c
+  (positions, zz) = drawAlphabet ps l
+  renderchar z c p = uncurry GS.translate (fst p) $ GS.scale (z*0.001*zz) (z*0.001*zz) $ GS.rotate (snd p) $ GS.text c
