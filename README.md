@@ -9,3 +9,9 @@ P.S: it seems that files from Paradox Interactive contains characters not define
 ----
 
 Requires Gloss and JuicyPixels
+
+To use, 
+
+ghc Main.hs
+
+./Main
