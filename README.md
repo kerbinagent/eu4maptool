@@ -15,3 +15,9 @@ To use,
 ghc Main.hs
 
 ./Main
+
+----
+
+A screenshot:
+
+![A province screenshot](https://github.com/kerbinagent/eu4maptool/blob/master/documents/Capture.PNG "Screenshot")
